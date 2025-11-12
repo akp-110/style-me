@@ -11,14 +11,18 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "bootstrap": "^5.3.8",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "express": "^4.18.2",
     "lucide-react": "^0.553.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-markdown": "^9.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@tailwindcss/postcss": "^4.1.17",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.1.0",
@@ -32,8 +36,15 @@
     "vite": "^7.2.2"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
-  "main": "eslint.config.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akp-110/outfit-rater.git"
+  },
+  "bugs": {
+    "url": "https://github.com/akp-110/outfit-rater/issues"
+  },
+  "homepage": "https://github.com/akp-110/outfit-rater#readme"
 }

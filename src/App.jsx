@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, Sparkles, TrendingUp, Flame, Smile } from 'lucide-react';
+import { Camera, Upload, Sparkles, TrendingUp, Flame, Smile, X, RefreshCw, Star, Zap, Wand2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 export default function App() {
   const [photo, setPhoto] = useState(null);
@@ -10,10 +11,50 @@ export default function App() {
   const fileInputRef = useRef(null);
 
   const modes = {
-    professional: { icon: TrendingUp, label: 'Professional', emoji: '👔' },
-    balanced: { icon: Sparkles, label: 'Balanced', emoji: '✨' },
-    hype: { icon: Flame, label: 'Hype Mode', emoji: '🔥' },
-    roast: { icon: Smile, label: 'Roast Mode', emoji: '😈' }
+    professional: { 
+      icon: TrendingUp, 
+      label: 'Professional', 
+      emoji: '👔',
+      color: 'blue',
+      gradient: 'from-blue-500 via-indigo-600 to-purple-600',
+      glow: 'glow-blue',
+      bgGradient: 'from-blue-50/50 to-indigo-50/50',
+      borderColor: 'border-blue-500',
+      dotColor: 'bg-blue-500'
+    },
+    balanced: { 
+      icon: Sparkles, 
+      label: 'Balanced', 
+      emoji: '✨',
+      color: 'purple',
+      gradient: 'from-purple-500 via-pink-500 to-rose-500',
+      glow: 'glow-purple',
+      bgGradient: 'from-purple-50/50 to-pink-50/50',
+      borderColor: 'border-purple-500',
+      dotColor: 'bg-purple-500'
+    },
+    hype: { 
+      icon: Flame, 
+      label: 'Hype Mode', 
+      emoji: '🔥',
+      color: 'orange',
+      gradient: 'from-orange-500 via-red-500 to-pink-500',
+      glow: 'glow-orange',
+      bgGradient: 'from-orange-50/50 to-red-50/50',
+      borderColor: 'border-orange-500',
+      dotColor: 'bg-orange-500'
+    },
+    roast: { 
+      icon: Smile, 
+      label: 'Roast Mode', 
+      emoji: '😈',
+      color: 'red',
+      gradient: 'from-red-500 via-pink-600 to-rose-600',
+      glow: 'glow-red',
+      bgGradient: 'from-red-50/50 to-pink-50/50',
+      borderColor: 'border-red-500',
+      dotColor: 'bg-red-500'
+    }
   };
 
   const handleFileUpload = (e) => {
@@ -26,6 +67,15 @@ export default function App() {
       };
       reader.readAsDataURL(file);
       setRating(null);
+    }
+  };
+
+  const clearPhoto = () => {
+    setPhoto(null);
+    setPhotoPreview(null);
+    setRating(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -54,32 +104,9 @@ export default function App() {
       reader.onloadend = async () => {
         const base64Image = reader.result.split(',')[1];
 
-        // Call Claude API
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'YOUR_API_KEY_HERE', // REPLACE THIS WITH YOUR ACTUAL API KEY
-            'anthropic-version': '2023-06-01'
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1500,
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'image',
-                    source: {
-                      type: 'base64',
-                      media_type: 'image/jpeg',
-                      data: base64Image
-                    }
-                  },
-                  {
-                    type: 'text',
-                    text: `${getModePrompt()}
+        // Build the prompt with mode-specific instructions
+        const modePrompt = getModePrompt();
+        const fullPrompt = `${modePrompt}
 
 Rate this outfit and provide feedback. Structure your response as:
 
@@ -98,27 +125,44 @@ Rate this outfit and provide feedback. Structure your response as:
 
 ${mode === 'roast' ? '**The Roast:**\n[Your wittiest observation]' : ''}
 
-Be specific and helpful!`
-                  }
-                ]
-              }
-            ]
+Be specific and helpful!`;
+
+        // Call your backend API
+        const response = await fetch('/api/rate-outfit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: base64Image,
+            mode: mode,
+            prompt: fullPrompt
           })
         });
 
         const data = await response.json();
 
         // Check for errors
-        if (data.error) {
-          throw new Error(data.error.message || 'API request failed');
+        if (!response.ok || data.error) {
+          throw new Error(data.error?.message || data.error || 'API request failed');
         }
 
-        const ratingText = data.content[0].text;
+        if (!data.content || !Array.isArray(data.content) || data.content.length === 0) {
+          throw new Error('Invalid API response: missing or empty content');
+        }
+
+        const textBlock = data.content[0];
+        if (textBlock.type !== 'text' || !textBlock.text) {
+          throw new Error('Invalid API response: expected text content');
+        }
+
+        const ratingText = textBlock.text;
         setRating(ratingText);
         setLoading(false);
       };
 
-      reader.onerror = () => { setLoading(false);
+      reader.onerror = () => {
+        setLoading(false);
         throw new Error('Failed to read image file');
       };
 
@@ -130,125 +174,265 @@ Be specific and helpful!`
     }
   };
 
+  const currentMode = modes[mode];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-gray-800 mb-2">
-            👗 Claude Rates My Outfit
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Get honest fashion feedback powered by AI
-          </p>
-        </div>
-
-        {/* Mode Selector */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Choose Your Vibe</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Object.entries(modes).map(([key, { icon: Icon, label, emoji }]) => (
-              <button
-                key={key}
-                onClick={() => setMode(key)}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  mode === key
-                    ? 'border-purple-500 bg-purple-50'
-                    : 'border-gray-200 hover:border-purple-300'
-                }`}
-              >
-                <div className="text-3xl mb-2">{emoji}</div>
-                <div className="font-semibold text-sm">{label}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Upload Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-6">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-
-          {!photoPreview ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-4 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer hover:border-purple-400 transition-colors"
-            >
-              <Upload className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <p className="text-xl font-semibold text-gray-700 mb-2">
-                Upload Your Outfit Photo
-              </p>
-              <p className="text-gray-500">Click to select or drag & drop</p>
+    // Added font-sans for clean typography and text-center for global alignment 
+    <div className="min-h-screen animated-gradient relative overflow-hidden font-sans text-center">
+      {/* Floating background particles */}
+      <div className="particle particle-1 floating"></div>
+      <div className="particle particle-2 floating-delayed"></div>
+      <div className="particle particle-3 floating-slow"></div>
+      
+      {/* Additional smaller particles */}
+      <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-purple-400/20 rounded-full blur-3xl floating"></div>
+      <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-pink-400/20 rounded-full blur-3xl floating-delayed"></div>
+      
+      {/* Overlay for better contrast */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10"></div>
+      
+      {/* Main Content Wrapper - Use flex for robust vertical alignment if content is short */}
+      <div className="relative z-10 py-10 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-start min-h-screen">
+        <div className="max-w-6xl mx-auto w-full">
+          {/* Header */}
+          <div className="text-center mb-14 animate-slide-down">
+            <div className="inline-block mb-8 relative group">
+              <div className="absolute inset-0 bg-white/40 blur-3xl rounded-full group-hover:blur-2xl transition-all duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/30 to-pink-400/30 blur-2xl rounded-full animate-pulse-slow"></div>
+              <span className="relative text-8xl sm:text-9xl lg:text-[12rem] floating inline-block transform group-hover:scale-110 transition-transform duration-500">
+                👗
+              </span>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <img
-                src={photoPreview}
-                alt="Your outfit"
-                className="w-full max-h-96 object-contain rounded-xl"
-              />
-              <div className="flex gap-3">
+            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black mb-6 relative">
+              <span className="gradient-text bg-clip-text text-transparent inline-block">
+                Claude Rates My Outfit
+              </span>
+            </h1>
+            <p className="text-white/95 text-xl sm:text-2xl lg:text-3xl max-w-3xl mx-auto font-semibold drop-shadow-2xl mb-6 leading-relaxed">
+              Get honest, AI-powered fashion feedback tailored to your style
+            </p>
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <Star className="w-6 h-6 text-yellow-300 animate-pulse" fill="currentColor" />
+              <span className="text-white/90 text-base font-medium">Powered by Claude Sonnet 4.5</span>
+              <Star className="w-6 h-6 text-yellow-300 animate-pulse" fill="currentColor" />
+            </div>
+          </div>
+
+          {/* Mode Selector */}
+          <div className="glass-strong rounded-[2.5rem] shadow-2xl p-8 sm:p-10 mb-10 animate-slide-up border-2 border-white/60 backdrop-blur-xl text-left">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-800 mb-10 text-center flex items-center justify-center gap-4">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+                <Zap className="w-7 h-7 text-white" />
+              </div>
+              <span>Choose Your Vibe</span>
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
+              {Object.entries(modes).map(([key, { icon: Icon, label, emoji, gradient, glow, borderColor, dotColor }]) => {
+                // Map mode keys to hover border classes
+                const hoverBorderClass = 
+                  key === 'professional' ? 'hover:border-blue-500' :
+                  key === 'balanced' ? 'hover:border-purple-500' :
+                  key === 'hype' ? 'hover:border-orange-500' :
+                  'hover:border-red-500'; // roast
+                
+                return (
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                  key={key}
+                  onClick={() => {
+                    setMode(key);
+                    setRating(null);
+                  }}
+                  // Added focus ring and enhanced transition for better button feel
+                  className={`group relative p-8 sm:p-10 rounded-[2rem] border-2 transition-all duration-500 transform hover:scale-[1.07] hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-50 focus:ring-offset-2 focus:ring-${currentMode.color}-500 ${
+                    mode === key
+                      ? `bg-gradient-to-br ${gradient} text-white shadow-2xl ${glow} scale-[1.07] border-transparent`
+                      : `border-gray-200/60 bg-white/90 hover:bg-white ${hoverBorderClass} text-gray-700 hover:shadow-xl`
+                  }`}
                 >
-                  Change Photo
-                </button>
-                <button
-                  onClick={getRating}
-                  disabled={loading}
-                  className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
+                  {mode === key && (
                     <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Rating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      Rate My Outfit
+                      {/* Bouncing dot */}
+                      <div className="absolute -top-4 -right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-xl animate-bounce-slow z-20">
+                        <div className={`w-5 h-5 ${dotColor} rounded-full`}></div>
+                      </div>
+                      <div className="absolute inset-0 bg-white/30 rounded-[2rem] blur-2xl -z-10 animate-pulse-slow"></div>
                     </>
                   )}
+                  <div className={`text-6xl sm:text-7xl mb-5 transition-all duration-500 ${
+                    mode === key 
+                      ? 'scale-125 rotate-12 drop-shadow-2xl' 
+                      : 'group-hover:scale-110 group-hover:rotate-6'
+                  }`}>
+                    {emoji}
+                  </div>
+                  <div className={`font-black text-lg sm:text-xl ${
+                    mode === key ? 'text-white drop-shadow-lg' : 'text-gray-800'
+                  }`}>
+                    {label}
+                  </div>
+                  {mode !== key && (
+                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-purple-500/0 to-pink-500/0 group-hover:from-purple-500/10 group-hover:to-pink-500/10 transition-all duration-500"></div>
+                  )}
                 </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Upload Section */}
+          <div className="glass-strong rounded-[2.5rem] shadow-2xl p-8 sm:p-10 mb-10 animate-slide-up border-2 border-white/60 backdrop-blur-xl text-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+
+            {!photoPreview ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-4 border-dashed border-white/50 rounded-[2rem] p-20 sm:p-24 text-center cursor-pointer hover:border-white/80 hover:bg-white/10 transition-all duration-500 group relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent)]"></div>
+                <div className="relative z-10">
+                  <div className="flex justify-center mb-10">
+                    <div className="p-8 bg-gradient-to-br from-purple-500/40 to-pink-500/40 rounded-3xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 backdrop-blur-md shadow-2xl border-2 border-white/30">
+                      <Upload className="w-20 h-20 sm:w-24 sm:h-24 text-white mx-auto drop-shadow-lg" />
+                    </div>
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-black text-white mb-4 drop-shadow-2xl">
+                    Upload Your Outfit Photo
+                  </p>
+                  <p className="text-white/90 text-lg sm:text-xl mb-3 font-medium">
+                    Click to select or drag & drop an image
+                  </p>
+                  <p className="text-white/70 text-sm sm:text-base">
+                    Supports JPG, PNG, and other image formats
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-8 animate-scale-in">
+                <div className="relative group">
+                  <div className="absolute -inset-6 bg-gradient-to-br from-purple-500/50 to-pink-500/50 rounded-[2.5rem] blur-3xl opacity-80 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow"></div>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent rounded-[2rem]"></div>
+                    <img
+                      src={photoPreview}
+                      alt="Your outfit"
+                      className="w-full max-h-[500px] sm:max-h-[700px] object-contain rounded-[2rem] shadow-2xl border-4 border-white/60 backdrop-blur-sm"
+                    />
+                    <button
+                      onClick={clearPhoto}
+                      className="absolute top-8 right-8 p-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl hover:bg-white hover:scale-110 hover:rotate-90 transition-all duration-300 border-2 border-white/50"
+                      aria-label="Remove photo"
+                    >
+                      <X className="w-7 h-7 text-gray-700" />
+                    </button>
+                  </div>
+                </div>
+                {/* Button Group (now perfectly centered) */}
+                <div className="flex flex-col sm:flex-row gap-5">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 py-6 px-10 bg-white/95 backdrop-blur-md text-gray-700 rounded-2xl font-black text-xl hover:bg-white hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 border-2 border-transparent hover:border-purple-400 shadow-xl"
+                  >
+                    <RefreshCw className="w-7 h-7" />
+                    <span>Change Photo</span>
+                  </button>
+                  <button
+                    onClick={getRating}
+                    disabled={loading}
+                    // Enhanced active state and focus ring
+                    className={`flex-1 py-6 px-10 bg-gradient-to-r ${currentMode.gradient} text-white rounded-2xl font-black text-2xl hover:shadow-2xl transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transform hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/20 disabled:hover:scale-100 disabled:hover:translate-y-0 ${currentMode.glow} border-2 border-white/40 shadow-2xl`}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div>
+                        <span>Analyzing Your Style...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-8 h-8" />
+                        <span>Rate My Outfit</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Rating Display */}
+          {rating && (
+            // Changed text-left to ensure Markdown content looks natural
+            <div className="glass-strong rounded-[2.5rem] shadow-2xl p-10 sm:p-14 mb-10 border-2 border-white/60 backdrop-blur-xl animate-scale-in text-left">
+              <div className="flex items-center gap-8 mb-12 pb-10 border-b-4 border-gradient-to-r from-purple-200 to-pink-200">
+                <div className="text-7xl sm:text-8xl animate-bounce-slow relative">
+                  <div className="absolute inset-0 bg-white/30 blur-2xl rounded-full"></div>
+                  <span className="relative">{currentMode.emoji}</span>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-4xl sm:text-5xl font-black text-gray-800 mb-3 flex items-center gap-3">
+                    <Wand2 className="w-8 h-8 text-purple-600" />
+                    <span>Claude's Verdict</span>
+                  </h2>
+                  <div className="flex items-center gap-3">
+                    <div className={`h-3 w-3 rounded-full ${currentMode.dotColor} animate-pulse shadow-lg`}></div>
+                    <p className="text-lg text-gray-600 font-bold">
+                      {currentMode.label} Mode
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {/* Ensure prose component respects text-left for readability */}
+              <div className="prose prose-lg sm:prose-xl max-w-none prose-headings:text-gray-800 prose-headings:font-black prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-ul:text-gray-700 prose-li:text-gray-700">
+                <ReactMarkdown
+                  components={{
+                    h2: ({node, ...props}) => (
+                      <h2 className="text-4xl font-black text-gray-800 mt-10 mb-6 pb-3 border-b-4 border-gradient-to-r from-purple-200 to-pink-200" {...props} />
+                    ),
+                    h3: ({node, ...props}) => (
+                      <h3 className="text-3xl font-bold text-gray-800 mt-8 mb-4" {...props} />
+                    ),
+                    p: ({node, ...props}) => (
+                      <p className="mb-6 text-gray-700 leading-9 text-xl" {...props} />
+                    ),
+                    // Adjusted list styling for better readability on left-aligned text
+                    ul: ({node, ...props}) => (
+                      <ul className="list-disc list-outside mb-8 space-y-4 ml-6 text-xl" {...props} />
+                    ),
+                    li: ({node, ...props}) => (
+                      <li className="text-gray-700 leading-9 marker:text-purple-500 marker:font-bold" {...props} />
+                    ),
+                    strong: ({node, ...props}) => (
+                      <strong className="font-black text-gray-900 bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1.5 rounded-lg shadow-sm" {...props} />
+                    ),
+                  }}
+                >
+                  {rating}
+                </ReactMarkdown>
+              </div>
+              <div className="mt-12 p-8 bg-gradient-to-r from-purple-100/90 to-pink-100/90 rounded-3xl border-2 border-purple-200/60 backdrop-blur-sm shadow-xl">
+                <p className="text-center text-gray-700 font-black text-lg flex items-center justify-center gap-3">
+                  <span className="text-3xl">💡</span>
+                  <span>Try different modes for completely different perspectives!</span>
+                </p>
               </div>
             </div>
           )}
-        </div>
 
-        {/* Rating Display */}
-        {rating && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="text-4xl">{modes[mode].emoji}</div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                Claude's Verdict
-              </h2>
-            </div>
-            <div className="prose prose-lg max-w-none">
-              {rating.split('\n').map((line, i) => (
-                <p key={i} className="mb-3 text-gray-700 leading-relaxed">
-                  {line}
-                </p>
-              ))}
-            </div>
-            <div className="mt-6 p-4 bg-purple-50 rounded-xl">
-              <p className="text-sm text-gray-600 text-center">
-                💡 Try different modes for different perspectives!
-              </p>
-            </div>
+          {/* Footer */}
+          <div className="text-center mt-20 mb-10 animate-fade-in">
+            <p className="text-white/95 text-lg sm:text-xl mb-4 font-bold drop-shadow-2xl">
+              Powered by <span className="font-black text-white text-xl">Claude Sonnet 4.5</span> × Anthropic API
+            </p>
+            <p className="text-white/80 text-base sm:text-lg">
+              #ClaudeRatesMyOutfit
+            </p>
           </div>
-        )}
-
-        {/* Footer */}
-        <div className="text-center mt-8 text-gray-500 text-sm">
-          <p>Powered by Claude 4 × Anthropic API</p>
-          <p className="mt-2">#ClaudeRatesMyOutfit</p>
         </div>
       </div>
     </div>

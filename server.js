@@ -1,22 +1,18 @@
-// api/rate-outfit.js
-export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// server.js
+import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+dotenv.config();
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+const app = express();
 
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+
+app.post('/api/rate-outfit', async (req, res) => {
   try {
-    const { image, prompt } = req.body;
+    const { image, mode, prompt } = req.body;
 
     if (!image || !prompt) {
       return res.status(400).json({ error: 'Missing image or prompt' });
@@ -30,7 +26,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
         messages: [
           {
@@ -60,9 +56,14 @@ export default async function handler(req, res) {
       throw new Error(data.error?.message || 'API request failed');
     }
 
-    res.status(200).json(data);
+    res.json(data);
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
-}
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
