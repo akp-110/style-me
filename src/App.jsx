@@ -197,18 +197,18 @@ Be specific and helpful!`;
           {/* Header */}
           <div className="text-center mb-14 animate-slide-down">
             <div className="inline-block mb-8 relative group">
-              <div className="absolute inset-0 bg-white/40 blur-3xl rounded-full group-hover:blur-2xl transition-all duration-500"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/30 to-pink-400/30 blur-2xl rounded-full animate-pulse-slow"></div>
-              <span className="relative text-8xl sm:text-9xl lg:text-[12rem] floating inline-block transform group-hover:scale-110 transition-transform duration-500">
+              <div className="absolute inset-0 bg-white/20 blur-2xl rounded-full group-hover:blur-2xl transition-all duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/18 to-pink-400/18 blur-xl rounded-full animate-pulse-slow"></div>
+              <span className="relative text-6xl sm:text-8xl lg:text-[12rem] floating inline-block transform group-hover:scale-105 transition-transform duration-500">
                 👗
               </span>
             </div>
-            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black mb-6 relative">
+            <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black mb-6 relative">
               <span className="gradient-text bg-clip-text text-transparent inline-block">
                 Claude Rates My Outfit
               </span>
             </h1>
-            <p className="text-white/95 text-xl sm:text-2xl lg:text-3xl max-w-3xl mx-auto font-semibold drop-shadow-2xl mb-6 leading-relaxed">
+            <p className="text-white/95 text-base sm:text-xl lg:text-3xl max-w-3xl mx-auto font-semibold drop-shadow-2xl mb-6 leading-relaxed">
               Get honest, AI-powered fashion feedback tailored to your style
             </p>
             <div className="flex items-center justify-center gap-3 mt-6">
@@ -226,7 +226,7 @@ Be specific and helpful!`;
               </div>
               <span>Choose Your Vibe</span>
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
               {Object.entries(modes).map(([key, { label, emoji, gradient, glow, dotColor }]) => {
                 // Map mode keys to hover border classes
                 const hoverBorderClass =
@@ -243,7 +243,7 @@ Be specific and helpful!`;
                     setRating(null);
                   }}
                   // Added focus ring and enhanced transition for better button feel
-                  className={`group relative p-8 sm:p-10 rounded-[2rem] border-2 transition-all duration-500 transform hover:scale-[1.07] hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-50 focus:ring-offset-2 focus:ring-${currentMode.color}-500 ${
+                  className={`group relative p-4 sm:p-10 rounded-[2rem] border-2 transition-all duration-500 transform hover:scale-[1.04] hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-50 focus:ring-offset-2 focus:ring-${currentMode.color}-500 ${
                     mode === key
                       ? `bg-gradient-to-br ${gradient} text-white shadow-2xl ${glow} scale-[1.07] border-transparent`
                       : `border-gray-200/60 bg-white/90 hover:bg-white ${hoverBorderClass} text-gray-700 hover:shadow-xl`
@@ -258,7 +258,7 @@ Be specific and helpful!`;
                       <div className="absolute inset-0 bg-white/30 rounded-[2rem] blur-2xl -z-10 animate-pulse-slow"></div>
                     </>
                   )}
-                  <div className={`text-6xl sm:text-7xl mb-5 transition-all duration-500 ${
+                  <div className={`text-4xl sm:text-6xl mb-5 transition-all duration-500 ${
                     mode === key
                       ? 'scale-125 rotate-12 drop-shadow-2xl'
                       : 'group-hover:scale-110 group-hover:rotate-6'
@@ -280,7 +280,7 @@ Be specific and helpful!`;
           </div>
 
           {/* Upload Section */}
-          <div className="glass-strong rounded-[2.5rem] shadow-2xl p-8 sm:p-10 mb-10 animate-slide-up border-2 border-white/60 backdrop-blur-xl text-center">
+          <div className="glass-strong rounded-[2.5rem] shadow-2xl p-6 sm:p-10 mb-10 animate-slide-up border-2 border-white/60 backdrop-blur-xl text-center">
             <input
               ref={fileInputRef}
               type="file"
@@ -292,13 +292,13 @@ Be specific and helpful!`;
             {!photoPreview ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-4 border-dashed border-white/50 rounded-[2rem] p-20 sm:p-24 text-center cursor-pointer hover:border-white/80 hover:bg-white/10 transition-all duration-500 group relative overflow-hidden"
+                className="border-4 border-dashed border-white/50 rounded-[2rem] p-12 sm:p-24 text-center cursor-pointer hover:border-white/80 hover:bg-white/10 transition-all duration-500 group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent)]"></div>
                 <div className="relative z-10">
                   <div className="flex justify-center mb-10">
-                    <div className="p-8 bg-gradient-to-br from-purple-500/40 to-pink-500/40 rounded-3xl group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 backdrop-blur-md shadow-2xl border-2 border-white/30">
+                    <div className="p-6 sm:p-8 bg-gradient-to-br from-purple-500/40 to-pink-500/40 rounded-3xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 backdrop-blur-md shadow-md border-2 border-white/30">
                       <Upload className="w-20 h-20 sm:w-24 sm:h-24 text-white mx-auto drop-shadow-lg" />
                     </div>
                   </div>
@@ -314,15 +314,15 @@ Be specific and helpful!`;
                 </div>
               </div>
             ) : (
-              <div className="space-y-8 animate-scale-in">
+                <div className="space-y-6 animate-scale-in">
                 <div className="relative group">
-                  <div className="absolute -inset-6 bg-gradient-to-br from-purple-500/50 to-pink-500/50 rounded-[2.5rem] blur-3xl opacity-80 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow"></div>
+                  <div className="absolute -inset-6 bg-gradient-to-br from-purple-500/40 to-pink-500/40 rounded-[2.5rem] blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow"></div>
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent rounded-[2rem]"></div>
                     <img
                       src={photoPreview}
                       alt="Your outfit"
-                      className="w-full max-h-[500px] sm:max-h-[700px] object-contain rounded-[2rem] shadow-2xl border-4 border-white/60 backdrop-blur-sm"
+                      className="w-full max-h-[360px] sm:max-h-[700px] object-contain rounded-[2rem] shadow-md sm:shadow-2xl border-4 border-white/60 backdrop-blur-sm"
                     />
                     <button
                       onClick={clearPhoto}
@@ -337,7 +337,7 @@ Be specific and helpful!`;
                 <div className="flex flex-col sm:flex-row gap-5">
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 py-6 px-10 btn-soft font-black text-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 border border-transparent hover:border-indigo-500 shadow-md"
+                    className="flex-1 py-3 px-6 sm:py-6 sm:px-10 btn-soft font-black text-lg sm:text-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 border border-transparent hover:border-indigo-500 shadow-md"
                   >
                     <RefreshCw className="w-7 h-7" />
                     <span>Change Photo</span>
@@ -346,7 +346,7 @@ Be specific and helpful!`;
                     onClick={getRating}
                     disabled={loading}
                     // Enhanced active state and focus ring
-                    className={`flex-1 py-6 px-10 bg-gradient-to-r ${currentMode.gradient} text-white rounded-2xl font-black text-2xl hover:shadow-2xl transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transform hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/20 disabled:hover:scale-100 disabled:hover:translate-y-0 ${currentMode.glow} border-2 border-white/40 shadow-2xl`}
+                    className={`flex-1 py-3 px-6 sm:py-6 sm:px-10 bg-gradient-to-r ${currentMode.gradient} text-white rounded-2xl font-black text-xl sm:text-2xl hover:shadow-2xl transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transform hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/20 disabled:hover:scale-100 disabled:hover:translate-y-0 ${currentMode.glow} border-2 border-white/40 shadow-2xl`}
                   >
                     {loading ? (
                       <>
