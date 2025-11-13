@@ -107,6 +107,15 @@
 .particle-2{ width:160px; height:160px; background: radial-gradient(circle, rgba(123,154,106,0.10) 0%, transparent 70%); top:60%; right:8% }
 .particle-3{ width:140px; height:140px; background: radial-gradient(circle, rgba(202,169,105,0.08) 0%, transparent 70%); bottom:18%; left:20% }
 
+/* Mobile-specific overrides */
+@media (max-width: 640px) {
+  .particle-2, .particle-3 { display: none; }
+  .particle-1 { width: 80px; height: 80px; top: 6%; left: 6%; filter: blur(18px); }
+  .animated-gradient { background-size: cover; animation-duration: 60s; }
+  .gradient-text { font-size: 1.6rem; }
+  .glass-strong { backdrop-filter: blur(12px); }
+}
+
 /* Soft CTA button style */
 .btn-soft {
   background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
