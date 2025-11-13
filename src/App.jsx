@@ -302,13 +302,13 @@ Be specific and helpful!`;
                       <Upload className="w-20 h-20 sm:w-24 sm:h-24 text-white mx-auto drop-shadow-lg" />
                     </div>
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black text-white mb-4 drop-shadow-2xl">
+                  <p className="text-3xl sm:text-4xl font-black text-gray-900 sm:text-white mb-4 drop-shadow-2xl">
                     Upload Your Outfit Photo
                   </p>
-                  <p className="text-white/90 text-lg sm:text-xl mb-3 font-medium">
+                  <p className="text-gray-900 sm:text-white/90 text-lg sm:text-xl mb-3 font-medium">
                     Click to select or drag & drop an image
                   </p>
-                  <p className="text-white/70 text-sm sm:text-base">
+                  <p className="text-gray-700 sm:text-white/70 text-sm sm:text-base">
                     Supports JPG, PNG, and other image formats
                   </p>
                 </div>
