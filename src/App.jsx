@@ -11,49 +11,49 @@ export default function App() {
   const fileInputRef = useRef(null);
 
   const modes = {
-    professional: { 
-      icon: TrendingUp, 
-      label: 'Professional', 
+    professional: {
+      icon: TrendingUp,
+      label: 'Professional',
       emoji: '👔',
-      color: 'blue',
-      gradient: 'from-blue-500 via-indigo-600 to-purple-600',
-      glow: 'glow-blue',
-      bgGradient: 'from-blue-50/50 to-indigo-50/50',
-      borderColor: 'border-blue-500',
-      dotColor: 'bg-blue-500'
+      color: 'indigo',
+      gradient: 'from-indigo-600 via-indigo-500 to-slate-500',
+      glow: 'glow-muted',
+      bgGradient: 'from-indigo-900/30 to-slate-900/20',
+      borderColor: 'border-indigo-600',
+      dotColor: 'bg-indigo-600'
     },
-    balanced: { 
-      icon: Sparkles, 
-      label: 'Balanced', 
+    balanced: {
+      icon: Sparkles,
+      label: 'Balanced',
       emoji: '✨',
-      color: 'purple',
-      gradient: 'from-purple-500 via-pink-500 to-rose-500',
-      glow: 'glow-purple',
-      bgGradient: 'from-purple-50/50 to-pink-50/50',
-      borderColor: 'border-purple-500',
-      dotColor: 'bg-purple-500'
+      color: 'slate',
+      gradient: 'from-slate-700 via-slate-600 to-emerald-500',
+      glow: 'glow-sage',
+      bgGradient: 'from-slate-900/25 to-emerald-900/10',
+      borderColor: 'border-slate-500',
+      dotColor: 'bg-emerald-500'
     },
-    hype: { 
-      icon: Flame, 
-      label: 'Hype Mode', 
+    hype: {
+      icon: Flame,
+      label: 'Hype Mode',
       emoji: '🔥',
-      color: 'orange',
-      gradient: 'from-orange-500 via-red-500 to-pink-500',
-      glow: 'glow-orange',
-      bgGradient: 'from-orange-50/50 to-red-50/50',
-      borderColor: 'border-orange-500',
-      dotColor: 'bg-orange-500'
+      color: 'amber',
+      gradient: 'from-amber-500 via-amber-400 to-rose-400',
+      glow: 'glow-gold',
+      bgGradient: 'from-amber-900/20 to-rose-900/10',
+      borderColor: 'border-amber-500',
+      dotColor: 'bg-amber-500'
     },
-    roast: { 
-      icon: Smile, 
-      label: 'Roast Mode', 
+    roast: {
+      icon: Smile,
+      label: 'Roast Mode',
       emoji: '😈',
-      color: 'red',
-      gradient: 'from-red-500 via-pink-600 to-rose-600',
-      glow: 'glow-red',
-      bgGradient: 'from-red-50/50 to-pink-50/50',
-      borderColor: 'border-red-500',
-      dotColor: 'bg-red-500'
+      color: 'rose',
+      gradient: 'from-rose-500 via-rose-400 to-amber-400',
+      glow: 'glow-muted',
+      bgGradient: 'from-rose-900/18 to-amber-900/8',
+      borderColor: 'border-rose-500',
+      dotColor: 'bg-rose-500'
     }
   };
 
@@ -177,20 +177,20 @@ Be specific and helpful!`;
   const currentMode = modes[mode];
 
   return (
-    // Added font-sans for clean typography and text-center for global alignment 
+    // Added font-sans for clean typography and text-center for global alignment
     <div className="min-h-screen animated-gradient relative overflow-hidden font-sans text-center">
       {/* Floating background particles */}
       <div className="particle particle-1 floating"></div>
       <div className="particle particle-2 floating-delayed"></div>
       <div className="particle particle-3 floating-slow"></div>
-      
+
       {/* Additional smaller particles */}
       <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-purple-400/20 rounded-full blur-3xl floating"></div>
       <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-pink-400/20 rounded-full blur-3xl floating-delayed"></div>
-      
+
       {/* Overlay for better contrast */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10"></div>
-      
+
       {/* Main Content Wrapper - Use flex for robust vertical alignment if content is short */}
       <div className="relative z-10 py-10 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-start min-h-screen">
         <div className="max-w-6xl mx-auto w-full">
@@ -227,14 +227,14 @@ Be specific and helpful!`;
               <span>Choose Your Vibe</span>
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
-              {Object.entries(modes).map(([key, { icon: Icon, label, emoji, gradient, glow, borderColor, dotColor }]) => {
+              {Object.entries(modes).map(([key, { label, emoji, gradient, glow, dotColor }]) => {
                 // Map mode keys to hover border classes
-                const hoverBorderClass = 
+                const hoverBorderClass =
                   key === 'professional' ? 'hover:border-blue-500' :
                   key === 'balanced' ? 'hover:border-purple-500' :
                   key === 'hype' ? 'hover:border-orange-500' :
                   'hover:border-red-500'; // roast
-                
+
                 return (
                 <button
                   key={key}
@@ -259,8 +259,8 @@ Be specific and helpful!`;
                     </>
                   )}
                   <div className={`text-6xl sm:text-7xl mb-5 transition-all duration-500 ${
-                    mode === key 
-                      ? 'scale-125 rotate-12 drop-shadow-2xl' 
+                    mode === key
+                      ? 'scale-125 rotate-12 drop-shadow-2xl'
                       : 'group-hover:scale-110 group-hover:rotate-6'
                   }`}>
                     {emoji}
@@ -326,10 +326,10 @@ Be specific and helpful!`;
                     />
                     <button
                       onClick={clearPhoto}
-                      className="absolute top-8 right-8 p-4 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl hover:bg-white hover:scale-110 hover:rotate-90 transition-all duration-300 border-2 border-white/50"
+                      className="absolute top-8 right-8 p-4 btn-soft rounded-2xl shadow-md hover:scale-110 hover:rotate-90 transition-all duration-300 border border-white/10"
                       aria-label="Remove photo"
                     >
-                      <X className="w-7 h-7 text-gray-700" />
+                      <X className="w-7 h-7 text-gray-100" />
                     </button>
                   </div>
                 </div>
@@ -337,7 +337,7 @@ Be specific and helpful!`;
                 <div className="flex flex-col sm:flex-row gap-5">
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 py-6 px-10 bg-white/95 backdrop-blur-md text-gray-700 rounded-2xl font-black text-xl hover:bg-white hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 border-2 border-transparent hover:border-purple-400 shadow-xl"
+                    className="flex-1 py-6 px-10 btn-soft font-black text-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 border border-transparent hover:border-indigo-500 shadow-md"
                   >
                     <RefreshCw className="w-7 h-7" />
                     <span>Change Photo</span>
@@ -391,23 +391,23 @@ Be specific and helpful!`;
               <div className="prose prose-lg sm:prose-xl max-w-none prose-headings:text-gray-800 prose-headings:font-black prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-ul:text-gray-700 prose-li:text-gray-700">
                 <ReactMarkdown
                   components={{
-                    h2: ({node, ...props}) => (
+                    h2: (props) => (
                       <h2 className="text-4xl font-black text-gray-800 mt-10 mb-6 pb-3 border-b-4 border-gradient-to-r from-purple-200 to-pink-200" {...props} />
                     ),
-                    h3: ({node, ...props}) => (
+                    h3: (props) => (
                       <h3 className="text-3xl font-bold text-gray-800 mt-8 mb-4" {...props} />
                     ),
-                    p: ({node, ...props}) => (
+                    p: (props) => (
                       <p className="mb-6 text-gray-700 leading-9 text-xl" {...props} />
                     ),
                     // Adjusted list styling for better readability on left-aligned text
-                    ul: ({node, ...props}) => (
+                    ul: (props) => (
                       <ul className="list-disc list-outside mb-8 space-y-4 ml-6 text-xl" {...props} />
                     ),
-                    li: ({node, ...props}) => (
+                    li: (props) => (
                       <li className="text-gray-700 leading-9 marker:text-purple-500 marker:font-bold" {...props} />
                     ),
-                    strong: ({node, ...props}) => (
+                    strong: (props) => (
                       <strong className="font-black text-gray-900 bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1.5 rounded-lg shadow-sm" {...props} />
                     ),
                   }}
