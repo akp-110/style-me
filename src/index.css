@@ -116,6 +116,12 @@
   .glass-strong { backdrop-filter: blur(12px); }
 }
 
+@media screen and (max-height: 450px) {
+  .mode-label {
+    font-size: 0.80rem !important;
+  }
+}
+
 /* Soft CTA button style */
 .btn-soft {
   background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04));
