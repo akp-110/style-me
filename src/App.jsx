@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Camera, Upload, Sparkles, TrendingUp, Flame, Smile, X, RefreshCw, Star, Zap, Wand2 } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Camera, Upload, Sparkles, TrendingUp, Flame, Smile, X, RefreshCw, Star, Zap, Wand2, MapPin, Cloud, Droplets, Wind, CloudRain } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 export default function App() {
@@ -8,7 +8,21 @@ export default function App() {
   const [rating, setRating] = useState(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState('balanced');
+  const [location, setLocation] = useState('');
+  const [weather, setWeather] = useState(null);
+  const [loadingWeather, setLoadingWeather] = useState(false);
+  const [useWeather, setUseWeather] = useState(true);
   const fileInputRef = useRef(null);
+
+  // Diagnostic: check whether Vite injected the OpenWeather key (presence only)
+  useEffect(() => {
+    try {
+      const hasKey = !!import.meta?.env?.VITE_OPENWEATHER_API_KEY;
+      console.log('VITE_OPENWEATHER_API_KEY present:', hasKey);
+    } catch {
+      console.log('Vite env not available in this runtime');
+    }
+  }, []);
 
   const modes = {
     professional: {
@@ -57,6 +71,109 @@ export default function App() {
     }
   };
 
+  // Fetch weather by coordinates (memoized so effect deps are stable)
+  const fetchWeatherByCoords = useCallback(async (lat, lon) => {
+    setLoadingWeather(true);
+    try {
+      // Call server-side proxy so API key stays on server
+      const response = await fetch(`/api/weather?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        setWeather({
+          temperature: Math.round(data.main.temp),
+          feelsLike: Math.round(data.main.feels_like),
+          condition: data.weather[0].main,
+          description: data.weather[0].description,
+          humidity: data.main.humidity,
+          windSpeed: Math.round(data.wind.speed),
+          icon: data.weather[0].icon
+        });
+        setLocation(`${data.name}, ${data.sys.country}`);
+      } else {
+        // If proxy returns error (missing key or upstream error), fall back to mock
+        console.warn('Weather proxy responded with non-OK status, using mock data');
+        setWeather(getMockWeather());
+        setLocation('New York, NY');
+      }
+    } catch (error) {
+      console.error('Weather fetch error:', error);
+      setWeather(getMockWeather());
+      setLocation('New York, NY');
+    } finally {
+      setLoadingWeather(false);
+    }
+  }, []);
+
+  // Get user's location on component mount
+  useEffect(() => {
+    if (navigator.geolocation && useWeather) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          await fetchWeatherByCoords(latitude, longitude);
+        },
+        () => {
+          console.log('Location access denied, using default location');
+          setLocation('New York, NY');
+          setWeather(getMockWeather());
+        }
+      );
+    }
+  }, [useWeather, fetchWeatherByCoords]);
+
+
+  const fetchWeatherByLocation = async (locationQuery) => {
+    setLoadingWeather(true);
+    try {
+      const response = await fetch(`/api/weather?q=${encodeURIComponent(locationQuery)}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        setWeather({
+          temperature: Math.round(data.main.temp),
+          feelsLike: Math.round(data.main.feels_like),
+          condition: data.weather[0].main,
+          description: data.weather[0].description,
+          humidity: data.main.humidity,
+          windSpeed: Math.round(data.wind.speed),
+          icon: data.weather[0].icon
+        });
+        setLocation(`${data.name}, ${data.sys.country}`);
+      } else {
+        const err = await response.json().catch(() => ({}));
+        alert(err.error || 'Location not found. Please try a different city or zip code.');
+      }
+    } catch (error) {
+      console.error('Weather fetch error:', error);
+      alert('Failed to fetch weather. Please try again.');
+    } finally {
+      setLoadingWeather(false);
+    }
+  };
+
+  const getMockWeather = () => ({
+    temperature: 72,
+    feelsLike: 70,
+    condition: 'Clear',
+    description: 'clear sky',
+    humidity: 60,
+    windSpeed: 5,
+    icon: '01d'
+  });
+
+  const handleLocationUpdate = () => {
+    if (location.trim()) {
+      fetchWeatherByLocation(location.trim());
+    }
+  };
+
+  const handleLocationKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleLocationUpdate();
+    }
+  };
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -89,6 +206,47 @@ export default function App() {
     return prompts[mode];
   };
 
+  const buildPromptWithWeather = () => {
+    const basePrompt = getModePrompt();
+
+    let weatherContext = '';
+    if (useWeather && weather) {
+      weatherContext = `
+
+**Current Weather Context:**
+Location: ${location}
+Temperature: ${weather.temperature}°C (feels like ${weather.feelsLike}°C)
+Conditions: ${weather.description}
+Humidity: ${weather.humidity}%
+Wind: ${weather.windSpeed} mph
+
+Please consider these weather conditions when evaluating if this outfit is appropriate.`;
+    }
+
+    return `${basePrompt}${weatherContext}
+
+Rate this outfit and provide feedback. Structure your response as:
+
+**Overall Rating: X/10** ⭐
+
+**Breakdown:**
+- Style: X/10
+${useWeather && weather ? '- Weather Appropriateness: X/10' : '- Versatility: X/10'}
+- Occasion Fit: X/10
+
+**What Works:**
+[2-3 specific positive points]
+
+**Suggestions:**
+[2-3 specific improvements]
+
+${useWeather && weather ? '**Weather Check:**\n[Comment on how well this outfit matches current conditions]' : ''}
+
+${mode === 'roast' ? '\n**The Roast:**\n[Your wittiest observation]' : ''}
+
+Be specific and helpful!`;
+  };
+
   const getRating = async () => {
     if (!photo) {
       alert('Please upload a photo first!');
@@ -99,33 +257,11 @@ export default function App() {
     setRating(null);
 
     try {
-      // Convert photo to base64
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Image = reader.result.split(',')[1];
 
-        // Build the prompt with mode-specific instructions
-        const modePrompt = getModePrompt();
-        const fullPrompt = `${modePrompt}
-
-Rate this outfit and provide feedback. Structure your response as:
-
-**Overall Rating: X/10** ⭐
-
-**Breakdown:**
-- Style: X/10
-- Weather Appropriateness: X/10
-- Versatility: X/10
-
-**What Works:**
-[2-3 specific positive points]
-
-**Suggestions:**
-[2-3 specific improvements]
-
-${mode === 'roast' ? '**The Roast:**\n[Your wittiest observation]' : ''}
-
-Be specific and helpful!`;
+        const fullPrompt = buildPromptWithWeather();
 
         // Call your backend API
         const response = await fetch('/api/rate-outfit', {
@@ -142,7 +278,6 @@ Be specific and helpful!`;
 
         const data = await response.json();
 
-        // Check for errors
         if (!response.ok || data.error) {
           throw new Error(data.error?.message || data.error || 'API request failed');
         }
@@ -177,21 +312,18 @@ Be specific and helpful!`;
   const currentMode = modes[mode];
 
   return (
-    // Added font-sans for clean typography and text-center for global alignment
     <div className="min-h-screen animated-gradient relative overflow-hidden font-sans text-center">
       {/* Floating background particles */}
       <div className="particle particle-1 floating"></div>
       <div className="particle particle-2 floating-delayed"></div>
       <div className="particle particle-3 floating-slow"></div>
-
-      {/* Additional smaller particles */}
       <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-purple-400/20 rounded-full blur-3xl floating"></div>
       <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-pink-400/20 rounded-full blur-3xl floating-delayed"></div>
 
       {/* Overlay for better contrast */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10"></div>
 
-      {/* Main Content Wrapper - Use flex for robust vertical alignment if content is short */}
+      {/* Main Content Wrapper */}
       <div className="relative z-10 py-10 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-start min-h-screen">
         <div className="max-w-6xl mx-auto w-full">
           {/* Header */}
@@ -209,13 +341,117 @@ Be specific and helpful!`;
               </span>
             </h1>
             <p className="text-white/95 text-base sm:text-xl lg:text-3xl max-w-3xl mx-auto font-semibold drop-shadow-2xl mb-6 leading-relaxed">
-              Get honest, AI-powered fashion feedback tailored to your style
+              Get honest, AI-powered fashion feedback {useWeather && 'with real-time weather context'}
             </p>
             <div className="flex items-center justify-center gap-3 mt-6">
               <Star className="w-6 h-6 text-yellow-300 animate-pulse" fill="currentColor" />
               <span className="text-white/90 text-base font-medium">Powered by Claude Sonnet 4.5</span>
               <Star className="w-6 h-6 text-yellow-300 animate-pulse" fill="currentColor" />
             </div>
+          </div>
+
+          {/* Weather Section */}
+<div className="glass-strong rounded-[2.5rem] shadow-2xl p-8 sm:p-10 mb-10 animate-slide-up border-2 border-white/60 backdrop-blur-xl text-left">
+  <div className="flex items-center justify-between mb-6">
+    <h2 className="text-3xl sm:text-4xl font-black text-gray-800 flex items-center gap-4">
+      <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
+        <Cloud className="w-7 h-7 text-gray" />
+      </div>
+      <span>Weather</span>
+    </h2>
+
+    {/* Toggle Switch */}
+    <label className="flex items-center gap-4 cursor-pointer select-none">
+      <span className="text-base text-gray-700 font-semibold">
+        Include in rating
+      </span>
+
+      <div
+        onClick={() => setUseWeather(!useWeather)}
+        className={`
+          relative w-14 h-8 flex items-center rounded-full p-1 transition-all
+          ${useWeather ? "bg-blue-500" : "bg-gray-300"}
+        `}
+      >
+        <div
+          className={`
+            w-6 h-6 bg-white rounded-full shadow-md transform transition-all
+            ${useWeather ? "translate-x-6" : "translate-x-0"}
+          `}
+        />
+      </div>
+    </label>
+  </div>
+
+
+            {useWeather && (
+              <>
+                {/* Location Input */}
+                <div className="mb-6">
+                  <div className="flex gap-3">
+                    <div className="flex-1 relative">
+                      <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
+                      <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        onKeyPress={handleLocationKeyPress}
+                        placeholder="Enter city or zip code..."
+                        className="w-full pl-14 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all font-medium text-gray-800 placeholder-black-500"
+                      />
+                    </div>
+                    <button
+                      onClick={handleLocationUpdate}
+                      disabled={loadingWeather}
+                      className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-gray rounded-2xl font-bold text-lg hover:shadow-xl disabled:opacity-50 transition-all hover:scale-105 disabled:hover:scale-100"
+                    >
+                      {loadingWeather ? 'Loading...' : 'Update'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Weather Display */}
+                {weather && !loadingWeather && (
+                  <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-100">
+                    <div className="text-center">
+                      <div className="text-4xl font-black text-gray-800 mb-1">
+                        {weather.temperature}°C
+                      </div>
+                      <div className="text-sm text-gray-600 font-semibold">Temperature</div>
+                      <div className="text-xs text-gray-500 mt-1">Feels like {weather.feelsLike}°C</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-2 text-2xl text-gray-800 mb-1">
+                        <CloudRain className="w-6 h-6" />
+                        <span className="font-black">{weather.condition}</span>
+                      </div>
+                      <div className="text-sm text-gray-600 font-semibold capitalize">{weather.description}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-2 text-2xl text-gray-800 mb-1">
+                        <Droplets className="w-6 h-6" />
+                        <span className="font-black">{weather.humidity}%</span>
+                      </div>
+                      <div className="text-sm text-gray-600 font-semibold">Humidity</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-2 text-2xl text-gray-800 mb-1">
+                        <Wind className="w-6 h-6" />
+                        <span className="font-black">{weather.windSpeed} mph</span>
+                      </div>
+                      <div className="text-sm text-gray-600 font-semibold">Wind Speed</div>
+                    </div>
+                  </div>
+                )}
+
+                {loadingWeather && (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-base text-gray-600 font-semibold">Fetching weather data...</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Mode Selector */}
@@ -226,14 +462,13 @@ Be specific and helpful!`;
               </div>
               <span>Choose Your Vibe</span>
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6">
               {Object.entries(modes).map(([key, { label, emoji, gradient, glow, dotColor }]) => {
-                // Map mode keys to hover border classes
                 const hoverBorderClass =
                   key === 'professional' ? 'hover:border-blue-500' :
                   key === 'balanced' ? 'hover:border-purple-500' :
                   key === 'hype' ? 'hover:border-orange-500' :
-                  'hover:border-red-500'; // roast
+                  'hover:border-red-500';
 
                 return (
                 <button
@@ -242,8 +477,7 @@ Be specific and helpful!`;
                     setMode(key);
                     setRating(null);
                   }}
-                  // Added focus ring and enhanced transition for better button feel
-                  className={`group relative p-4 sm:p-10 rounded-[2rem] border-2 transition-all duration-500 transform hover:scale-[1.04] hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-50 focus:ring-offset-2 focus:ring-${currentMode.color}-500 ${
+                  className={`group relative p-4 sm:p-6 lg:p-10 rounded-[2rem] border-2 transition-all duration-500 transform hover:scale-[1.04] hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-50 focus:ring-offset-2 ${
                     mode === key
                       ? `bg-gradient-to-br ${gradient} text-white shadow-2xl ${glow} scale-[1.07] border-transparent`
                       : `border-gray-200/60 bg-white/90 hover:bg-white ${hoverBorderClass} text-gray-700 hover:shadow-xl`
@@ -251,7 +485,6 @@ Be specific and helpful!`;
                 >
                   {mode === key && (
                     <>
-                      {/* Bouncing dot */}
                       <div className="absolute -top-4 -right-4 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-xl animate-bounce-slow z-20">
                         <div className={`w-5 h-5 ${dotColor} rounded-full`}></div>
                       </div>
@@ -265,7 +498,7 @@ Be specific and helpful!`;
                   }`}>
                     {emoji}
                   </div>
-                  <div className={`font-black text-lg sm:text-xl ${
+                  <div className={`mode-label font-black text-base xs:text-lg text-lg sm:text-xl text-center break-words whitespace-normal${
                     mode === key ? 'text-white drop-shadow-lg' : 'text-gray-800'
                   }`}>
                     {label}
@@ -314,7 +547,7 @@ Be specific and helpful!`;
                 </div>
               </div>
             ) : (
-                <div className="space-y-6 animate-scale-in">
+              <div className="space-y-6 animate-scale-in">
                 <div className="relative group">
                   <div className="absolute -inset-6 bg-gradient-to-br from-purple-500/40 to-pink-500/40 rounded-[2.5rem] blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow"></div>
                   <div className="relative">
@@ -333,7 +566,6 @@ Be specific and helpful!`;
                     </button>
                   </div>
                 </div>
-                {/* Button Group (now perfectly centered) */}
                 <div className="flex flex-col sm:flex-row gap-5">
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -345,8 +577,7 @@ Be specific and helpful!`;
                   <button
                     onClick={getRating}
                     disabled={loading}
-                    // Enhanced active state and focus ring
-                    className={`flex-1 py-3 px-6 sm:py-6 sm:px-10 bg-gradient-to-r ${currentMode.gradient} text-white rounded-2xl font-black text-xl sm:text-2xl hover:shadow-2xl transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transform hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/20 disabled:hover:scale-100 disabled:hover:translate-y-0 ${currentMode.glow} border-2 border-white/40 shadow-2xl`}
+                    className={`flex-1 py-3 px-6 sm:py-6 sm:px-10 bg-gradient-to-r ${currentMode.gradient} text-white rounded-2xl font-black text-xl sm:text-2xl hover:shadow-2xl transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transform hover:scale-[1.05] hover:-translate-y-1 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-white/50 focus:ring-offset-2 disabled:hover:scale-100 disabled:hover:translate-y-0 ${currentMode.glow} border-2 border-white/40 shadow-2xl`}
                   >
                     {loading ? (
                       <>
@@ -367,7 +598,6 @@ Be specific and helpful!`;
 
           {/* Rating Display */}
           {rating && (
-            // Changed text-left to ensure Markdown content looks natural
             <div className="glass-strong rounded-[2.5rem] shadow-2xl p-10 sm:p-14 mb-10 border-2 border-white/60 backdrop-blur-xl animate-scale-in text-left">
               <div className="flex items-center gap-8 mb-12 pb-10 border-b-4 border-gradient-to-r from-purple-200 to-pink-200">
                 <div className="text-7xl sm:text-8xl animate-bounce-slow relative">
@@ -382,12 +612,11 @@ Be specific and helpful!`;
                   <div className="flex items-center gap-3">
                     <div className={`h-3 w-3 rounded-full ${currentMode.dotColor} animate-pulse shadow-lg`}></div>
                     <p className="text-lg text-gray-600 font-bold">
-                      {currentMode.label} Mode
+                      {currentMode.label} Mode {useWeather && weather && '• Weather-Aware'}
                     </p>
                   </div>
                 </div>
               </div>
-              {/* Ensure prose component respects text-left for readability */}
               <div className="prose prose-lg sm:prose-xl max-w-none prose-headings:text-gray-800 prose-headings:font-black prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-ul:text-gray-700 prose-li:text-gray-700">
                 <ReactMarkdown
                   components={{
@@ -400,7 +629,6 @@ Be specific and helpful!`;
                     p: (props) => (
                       <p className="mb-6 text-gray-700 leading-9 text-xl" {...props} />
                     ),
-                    // Adjusted list styling for better readability on left-aligned text
                     ul: (props) => (
                       <ul className="list-disc list-outside mb-8 space-y-4 ml-6 text-xl" {...props} />
                     ),
@@ -418,7 +646,11 @@ Be specific and helpful!`;
               <div className="mt-12 p-8 bg-gradient-to-r from-purple-100/90 to-pink-100/90 rounded-3xl border-2 border-purple-200/60 backdrop-blur-sm shadow-xl">
                 <p className="text-center text-gray-700 font-black text-lg flex items-center justify-center gap-3">
                   <span className="text-3xl">💡</span>
-                  <span>Try different modes for completely different perspectives!</span>
+                  <span>
+                    {useWeather && weather
+                      ? 'Weather-aware rating provided! Try different modes for more perspectives!'
+                      : 'Try different modes for completely different perspectives!'}
+                  </span>
                 </p>
               </div>
             </div>
@@ -427,7 +659,7 @@ Be specific and helpful!`;
           {/* Footer */}
           <div className="text-center mt-20 mb-10 animate-fade-in">
             <p className="text-white/95 text-lg sm:text-xl mb-4 font-bold drop-shadow-2xl">
-              Powered by <span className="font-black text-white text-xl">Claude Sonnet 4.5</span> × Anthropic API
+              Powered by <span className="font-black text-white text-xl">Claude Sonnet 4.5</span> × Anthropic API {useWeather && '× OpenWeather'}
             </p>
             <p className="text-white/80 text-base sm:text-lg">
               #ClaudeRatesMyOutfit
