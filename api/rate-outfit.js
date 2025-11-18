@@ -1,13 +1,13 @@
 /* eslint-env node */
 /* global process */
 
+import { setCorsHeaders } from './middleware/cors.js';
+import { MODE_TOKEN_LIMITS, DEFAULT_TOKEN_LIMIT } from './config/constants.js';
+
 // api/rate-outfit.js
 export default async function handler(req, res) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  setCorsHeaders(res);
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -19,21 +19,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { image, prompt } = req.body;
+    const { image, prompt, mode = 'balanced' } = req.body;
 
     if (!image || !prompt) {
       return res.status(400).json({ error: 'Missing image or prompt' });
     }
 
     // Determine max_tokens based on mode for cost optimization
-    const modeTokenLimits = {
-      professional: 1000,
-      balanced: 800,
-      hype: 700,
-      roast: 700
-    };
-    const { mode = 'balanced' } = req.body;
-    const maxTokens = modeTokenLimits[mode] || 800;
+    const maxTokens = MODE_TOKEN_LIMITS[mode] || DEFAULT_TOKEN_LIMIT;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

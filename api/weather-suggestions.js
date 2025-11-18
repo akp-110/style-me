@@ -1,7 +1,16 @@
 /* eslint-env node */
 /* global process */
 
+import { setCorsHeaders } from './middleware/cors.js';
+
 export default async function handler(req, res) {
+  setCorsHeaders(res);
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -12,7 +21,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Query parameter "q" is required' });
   }
 
-  const apiKey = process.env.OPENWEATHER_API_KEY || process.env.VITE_OPENWEATHER_API_KEY;
+  const apiKey = process.env.OPENWEATHER_API_KEY;
 
   if (!apiKey) {
     console.error('OpenWeather API key not found');
@@ -42,9 +51,6 @@ export default async function handler(req, res) {
         : `${location.name}, ${location.country}`
     }));
 
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.status(200).json(suggestions);
   } catch (error) {
     console.error('Error fetching weather suggestions:', error);

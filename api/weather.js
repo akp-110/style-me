@@ -1,12 +1,12 @@
 // api/weather.js
 /* eslint-env node */
 /* global process */
+
+import { setCorsHeaders } from './middleware/cors.js';
+
 export default async function handler(req, res) {
   // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  setCorsHeaders(res);
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -20,9 +20,7 @@ export default async function handler(req, res) {
   try {
     const { lat, lon, q } = req.query || {};
 
-    // Prefer server-only key; fallback to VITE_ prefixed if present
     const apiKey = process.env.OPENWEATHER_API_KEY;
-    console.log('Weather proxy - OPENWEATHER_API_KEY present:', !!process.env.OPENWEATHER_API_KEY);
 
     if (!apiKey) {
       return res.status(400).json({ error: 'OpenWeather API key not configured on server' });
