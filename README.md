@@ -1,4 +1,4 @@
-# 👗 Claude Rates My Outfit
+# Style / Me
 
 AI-powered outfit rating app using Claude 4.
 
