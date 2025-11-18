@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root{
-  --bg-100: #061938; /* charcoal black */
-  --bg-200: #325ad1; /* dark slate */
+  --bg-100: #030810; /* charcoal black */
+  --bg-200: #030810; /* dark slate */
   --surface: rgba(255,255,255,0.04); /* subtle translucent surface */
   --muted: #8b92a9; /* slate-400 */
   --text: #f5f7fa; /* clean white */
