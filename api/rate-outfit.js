@@ -1,3 +1,6 @@
+/* eslint-env node */
+/* global process */
+
 // api/rate-outfit.js
 export default async function handler(req, res) {
   // Enable CORS
@@ -22,6 +25,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing image or prompt' });
     }
 
+    // Determine max_tokens based on mode for cost optimization
+    const modeTokenLimits = {
+      professional: 1000,
+      balanced: 800,
+      hype: 700,
+      roast: 700
+    };
+    const { mode = 'balanced' } = req.body;
+    const maxTokens = modeTokenLimits[mode] || 800;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -31,7 +44,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1500,
+        max_tokens: maxTokens,
         messages: [
           {
             role: 'user',
