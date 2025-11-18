@@ -76,11 +76,11 @@ export default function App() {
       bio: 'Museum curator & style theorist analyzing cultural context',
       image: AlexandraAshfordImage,
       color: 'slate',
-      gradient: 'from-slate-700 via-slate-600 to-slate-500',
+      gradient: 'from-slate-700 via-slate-800 to-gray-900',
       glow: 'glow-muted',
       bgGradient: 'from-slate-800/40 to-slate-700/20',
       borderColor: 'border-slate-600',
-      dotColor: 'bg-slate-500'
+      dotColor: 'bg-slate-800'
     },
     balanced: {
       icon: Scale,
@@ -88,12 +88,12 @@ export default function App() {
       persona: 'Thoughtful, Elegant, and Refined',
       bio: 'Parisian consultant elevating style with warmth',
       image: MargotLeclercImage,
-      color: 'teal',
-      gradient: 'from-teal-700 via-teal-600 to-emerald-500',
+      color: 'orange',
+      gradient: 'from-slate-900 via-orange-950 to-slate-900',
       glow: 'glow-sage',
-      bgGradient: 'from-teal-800/30 to-emerald-800/15',
-      borderColor: 'border-teal-600',
-      dotColor: 'bg-teal-500'
+      bgGradient: 'from-orange-800/30 to-emerald-800/15',
+      borderColor: 'border-orange-600',
+      dotColor: 'bg-orange-900'
     },
     hype: {
       icon: Sun,
@@ -101,12 +101,12 @@ export default function App() {
       persona: 'Authenticity, Energy and Enthusiam',
       bio: 'Fashion journalist celebrating boldness & expression',
       image: KaiChenImage,
-      color: 'cyan',
-      gradient: 'from-cyan-600 via-blue-600 to-blue-500',
+      color: 'green',
+      gradient: 'from-teal-800 via-emerald-800 to-green-900',
       glow: 'glow-gold',
-      bgGradient: 'from-cyan-800/25 to-blue-800/15',
-      borderColor: 'border-cyan-600',
-      dotColor: 'bg-cyan-500'
+      bgGradient: 'from-teal-800/25 to-green-800/15',
+      borderColor: 'border-green-900',
+      dotColor: 'bg-green-900'
     },
     roast: {
       icon: MessageCircle,
@@ -114,12 +114,12 @@ export default function App() {
       persona: 'Truthful and Straightforward',
       bio: 'Fashion critic with witty, sharp observations',
       image: MarcusStoneImage,
-      color: 'slate',
-      gradient: 'from-slate-600 via-slate-500 to-slate-400',
+      color: 'indigo',
+      gradient: 'from-violet-950 via-inidgo-900 to-blue-950',
       glow: 'glow-muted',
-      bgGradient: 'from-slate-800/35 to-slate-700/18',
-      borderColor: 'border-slate-500',
-      dotColor: 'bg-slate-400'
+      bgGradient: 'from-indigo-900/35 to-indigo-800/18',
+      borderColor: 'border-blue-500',
+      dotColor: 'bg-indigo-900'
     }
   };
 
@@ -653,8 +653,8 @@ Be specific and helpful!`;
       <div className="particle particle-1 floating"></div>
       <div className="particle particle-2 floating-delayed"></div>
       <div className="particle particle-3 floating-slow"></div>
-      <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-purple-400/20 rounded-full blur-3xl floating"></div>
-      <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-pink-400/20 rounded-full blur-3xl floating-delayed"></div>
+      <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-gray-400/20 rounded-full blur-3xl floating"></div>
+      <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-slate-400/20 rounded-full blur-3xl floating-delayed"></div>
 
       {/* Overlay for better contrast */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10"></div>
@@ -666,7 +666,8 @@ Be specific and helpful!`;
           <div className="text-center mb-14 animate-slide-down">
             <h1 className="text-7xl sm:text-9xl lg:text-[12rem] font-black mb-6 relative leading-tight tracking-tight">
               <span className="bg-gradient-to-r from-slate-200 via-white to-slate-200 bg-clip-text text-transparent block drop-shadow-2xl">
-                StyleSync
+                <span className="text-amber-50">Style /</span>
+                <span className="text-orange-700"> Me</span>
               </span>
             </h1>
             <p className="text-white/85 text-base sm:text-lg lg:text-2xl max-w-3xl mx-auto font-light tracking-wide mb-8 leading-relaxed">
@@ -677,7 +678,7 @@ Be specific and helpful!`;
             {/* Style Profile Button */}
             <button
               onClick={() => setShowStyleModal(true)}
-              className="mt-8 min-w-56 px-6 py-3 bg-gradient-to-r from-slate-700 to-teal-700 text-white rounded-2xl font-semibold text-sm sm:text-base hover:shadow-2xl transition-all hover:scale-105 flex jusitfy-center items-center-justify gap-5 mx-auto"
+              className="mt-8 min-w-56 px-6 py-3 bg-gradient-to-r from-slate-900 to-orange-950 text-amber-50 rounded-2xl font-semibold text-sm sm:text-base hover:shadow-2xl transition-all hover:scale-105 flex jusitfy-center items-center-justify gap-5 mx-auto"
             >
               <Heart className="w-5 h-5" />
               <span>My Style Profile</span>
@@ -686,7 +687,7 @@ Be specific and helpful!`;
             {/* Calendar Button */}
             <button
               onClick={() => setShowCalendarModal(true)}
-              className="mt-4 min-w-56 px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-2xl font-semibold text-sm sm:text-base hover:shadow-2xl transition-all hover:scale-105 flex justify-center items-center gap-2 mx-auto"
+              className="mt-4 min-w-56 px-6 py-3 bg-gradient-to-r from-slate-800 to-slate-900 text-amber-50 rounded-2xl font-semibold text-sm sm:text-base hover:shadow-2xl transition-all hover:scale-105 flex justify-center items-center gap-2 mx-auto"
             >
               <Calendar className="w-5 h-5" />
               <span>My Calendar</span>
@@ -698,8 +699,8 @@ Be specific and helpful!`;
 <div className="glass-strong rounded-[2.5rem] shadow-2xl p-8 sm:p-10 mb-10 animate-slide-up border-2 border-white/40 backdrop-blur-xl text-left">
   <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-4 xs:gap-6 mb-8">
     <h2 className="text-3xl sm:text-4xl font-black text-slate-800 flex items-center gap-4">
-      <div className="p-2 bg-gradient-to-br from-slate-600 to-teal-600 rounded-xl">
-        <Cloud className="w-7 h-7 text-white" />
+      <div className="p-2 bg-gradient-to-br from-slate-900 to-orange-950 rounded-xl">
+        <Cloud className="w-7 h-7 text-amber-50" />
       </div>
       <span>Weather</span>
     </h2>
@@ -715,7 +716,7 @@ Be specific and helpful!`;
           onClick={() => setUseWeather(!useWeather)}
           className={`
             relative w-12 xs:w-14 h-7 xs:h-8 flex items-center rounded-full p-1 transition-all flex-shrink-0
-            ${useWeather ? "bg-teal-600" : "bg-slate-400"}
+            ${useWeather ? "bg-orange-600" : "bg-slate-400"}
           `}
         >
           <div
@@ -730,7 +731,7 @@ Be specific and helpful!`;
       <button
         onClick={handleLocationUpdate}
         disabled={loadingWeather}
-        className="px-4 xs:px-6 py-2 xs:py-2.5 bg-gradient-to-r from-teal-600 to-slate-600 text-white rounded-xl xs:rounded-2xl font-semibold text-sm xs:text-base hover:shadow-xl disabled:opacity-50 transition-all hover:scale-105 disabled:hover:scale-100 flex-shrink-0"
+        className="px-4 xs:px-6 py-2 xs:py-2.5 bg-gradient-to-r from-slate-900 to-orange-950 text-amber-50 rounded-xl xs:rounded-2xl font-semibold text-sm xs:text-base hover:shadow-xl disabled:opacity-50 transition-all hover:scale-105 disabled:hover:scale-100 flex-shrink-0"
       >
         {loadingWeather ? 'Loading...' : 'Update'}
       </button>
@@ -750,7 +751,7 @@ Be specific and helpful!`;
                         onChange={(e) => setLocation(e.target.value)}
                         onKeyPress={handleLocationKeyPress}
                         placeholder="Enter city or zip code..."
-                        className="w-full pl-12 xs:pl-14 pr-4 py-5 xs:py-4 text-base xs:text-lg border-2 border-slate-300 rounded-2xl focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/20 transition-all font-medium text-slate-800 placeholder-slate-500"
+                        className="w-full pl-12 xs:pl-14 pr-4 py-5 xs:py-4 text-base xs:text-lg border-2 border-slate-300 rounded-2xl focus:border-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-600/20 transition-all font-medium text-slate-800 placeholder-slate-500"
                         autoComplete="off"
                       />
 
@@ -761,7 +762,7 @@ Be specific and helpful!`;
                             <button
                               key={index}
                               onClick={() => handleSuggestionSelect(suggestion)}
-                              className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors duration-200 text-slate-800 hover:text-teal-600 font-medium"
+                              className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors duration-200 text-slate-800 hover:text-orange-600 font-medium"
                             >
                               <div className="font-semibold">{suggestion.name}</div>
                               <div className="text-sm text-slate-500">{suggestion.country}{suggestion.state ? `, ${suggestion.state}` : ''}</div>
@@ -774,7 +775,7 @@ Be specific and helpful!`;
                       {loadingSuggestions && showSuggestions && location.trim() && (
                         <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-slate-200 rounded-2xl shadow-2xl z-50 px-4 py-3">
                           <div className="flex items-center gap-2 text-slate-600">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-600 border-t-transparent"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-orange-600 border-t-transparent"></div>
                             <span className="text-sm">Searching locations...</span>
                           </div>
                         </div>
@@ -826,7 +827,7 @@ Be specific and helpful!`;
 
                 {loadingWeather && (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-600 border-t-transparent mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-600 border-t-transparent mx-auto mb-4"></div>
                     <p className="text-base text-slate-600 font-semibold">Fetching weather data...</p>
                   </div>
                 )}
@@ -837,8 +838,8 @@ Be specific and helpful!`;
           {/* Mode Selector */}
           <div className="glass-strong rounded-[2.5rem] shadow-2xl p-8 sm:p-10 mb-10 animate-slide-up border-2 border-white/40 backdrop-blur-xl text-left">
             <h2 className="text-3xl sm:text-4xl font-black text-slate-800 mb-10 text-center flex items-center justify-center gap-4">
-              <div className="p-2 bg-gradient-to-br from-slate-700 to-teal-700 rounded-xl">
-                <Zap className="w-7 h-7 text-white" />
+              <div className="p-2 bg-gradient-to-br from-slate-900 to-orange-950 rounded-xl">
+                <Zap className="w-7 h-7 text-amber-50" />
               </div>
               <span>Choose your advisor</span>
             </h2>
@@ -847,9 +848,9 @@ Be specific and helpful!`;
                 const { label, persona, bio, image, icon: IconComponent, gradient, glow, dotColor } = modeData;
                 const hoverBorderClass =
                   key === 'professional' ? 'hover:border-slate-600' :
-                  key === 'balanced' ? 'hover:border-teal-600' :
-                  key === 'hype' ? 'hover:border-cyan-600' :
-                  'hover:border-slate-500';
+                  key === 'balanced' ? 'hover:border-orange-700' :
+                  key === 'hype' ? 'hover:border-green-700' :
+                  'hover:border-indigo-700';
 
                 return (
                 <button
@@ -882,7 +883,7 @@ Be specific and helpful!`;
                         {/* Glow background */}
                         <div className={`persona-glow glow-${
                           key === 'professional' ? 'slate' :
-                          key === 'balanced' ? 'teal' :
+                          key === 'balanced' ? 'orange' :
                           key === 'hype' ? 'cyan' :
                           'slate'
                         }`}></div>
@@ -921,7 +922,7 @@ Be specific and helpful!`;
                     </div>
                   )}
                   {mode !== key && (
-                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-slate-500/0 to-teal-500/0 group-hover:from-slate-500/10 group-hover:to-teal-500/10 transition-all duration-500"></div>
+                    <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-slate-500/0 to-slate-500/0 group-hover:from-slate-500/10 group-hover:to-slate-500/10 transition-all duration-500"></div>
                   )}
                 </button>
                 );
@@ -944,11 +945,11 @@ Be specific and helpful!`;
                 onClick={() => fileInputRef.current?.click()}
                 className="border-4 border-dashed border-white/50 rounded-[2rem] p-12 sm:p-24 text-center cursor-pointer hover:border-white/80 hover:bg-white/10 transition-all duration-500 group relative overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-500/30 to-teal-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-950 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent)]"></div>
                 <div className="relative z-10">
                   <div className="flex justify-center mb-10">
-                    <div className="p-6 sm:p-8 bg-gradient-to-br from-slate-600/40 to-teal-600/40 rounded-3xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 backdrop-blur-md shadow-md border-2 border-white/30">
+                    <div className="p-6 sm:p-8 bg-gradient-to-br from-orange-600 to-orange-700 rounded-3xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 backdrop-blur-md shadow-md border-2 border-white/30">
                       <Upload className="w-20 h-20 sm:w-24 sm:h-24 text-white mx-auto drop-shadow-lg" />
                     </div>
                   </div>
@@ -966,7 +967,7 @@ Be specific and helpful!`;
             ) : (
               <div className="space-y-6 animate-scale-in">
                 <div className="relative group">
-                  <div className="absolute -inset-6 bg-gradient-to-br from-slate-600/40 to-teal-600/40 rounded-[2.5rem] blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow"></div>
+                  <div className="absolute -inset-6 bg-gradient-to-br from-slate-900/40 to-orange-950/40 rounded-[2.5rem] blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-500 animate-pulse-slow"></div>
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent rounded-[2rem]"></div>
                     <img
@@ -986,7 +987,7 @@ Be specific and helpful!`;
                 <div className="flex flex-col sm:flex-row gap-5">
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 py-3 px-6 sm:py-6 sm:px-10 btn-soft font-semibold text-lg sm:text-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 border border-transparent hover:border-teal-600 shadow-md"
+                    className="flex-1 py-3 px-6 sm:py-6 sm:px-10 btn-soft font-semibold text-lg sm:text-xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 border border-transparent hover:border-orange-600 shadow-md"
                   >
                     <RefreshCw className="text-slate-800 w-7 h-7" />
                     <span className="text-black">Change Photo</span>
@@ -1016,7 +1017,7 @@ Be specific and helpful!`;
           {/* Rating Display */}
           {rating && (
             <div className="glass-strong rounded-[2.5rem] shadow-2xl p-10 sm:p-14 mb-10 border-2 border-white/40 backdrop-blur-xl animate-scale-in text-left">
-              <div className="flex items-center gap-8 mb-12 pb-10 border-b-4 border-gradient-to-r from-slate-300 to-teal-300">
+              <div className="flex items-center gap-8 mb-12 pb-10 border-b-4 border-gradient-to-r from-slate-300 to-orange-300">
                 <div className="text-7xl sm:text-8xl animate-bounce-slow relative">
                   <div className="absolute inset-0 bg-white/30 blur-2xl rounded-full"></div>
                   <span className="relative">
@@ -1025,7 +1026,7 @@ Be specific and helpful!`;
                 </div>
                 <div className="flex-1">
                   <h2 className="text-4xl sm:text-5xl font-black text-slate-800 mb-3 flex items-center gap-3">
-                    <Wand2 className="w-8 h-8 text-teal-700" />
+                    <Wand2 className="w-8 h-8 text-orange-700" />
                     <span>{currentMode.label}'s Advice</span>
                   </h2>
                   <div className="flex items-center gap-3">
@@ -1036,7 +1037,7 @@ Be specific and helpful!`;
                 <ReactMarkdown
                   components={{
                     h2: (props) => (
-                      <h2 className="text-4xl font-black text-gray-800 mt-10 mb-6 pb-3 border-b-4 border-gradient-to-r from-purple-200 to-pink-200" {...props} />
+                      <h2 className="text-4xl font-black text-gray-800 mt-10 mb-6 pb-3 border-b-4 border-gradient-to-r from-gray-200 to-slate-200" {...props} />
                     ),
                     h3: (props) => (
                       <h3 className="text-3xl font-bold text-gray-800 mt-8 mb-4" {...props} />
@@ -1048,17 +1049,17 @@ Be specific and helpful!`;
                       <ul className="list-disc list-outside mb-8 space-y-4 ml-6 text-xl" {...props} />
                     ),
                     li: (props) => (
-                      <li className="text-gray-700 leading-9 marker:text-purple-500 marker:font-bold" {...props} />
+                      <li className="text-gray-700 leading-9 marker:text-slate-500 marker:font-bold" {...props} />
                     ),
                     strong: (props) => (
-                      <strong className="font-black text-gray-900 bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1.5 rounded-lg shadow-sm" {...props} />
+                      <strong className="font-black text-gray-900 bg-gradient-to-r from-slate-100 to-gray-100 px-3 py-1.5 rounded-lg shadow-sm" {...props} />
                     ),
                   }}
                 >
                   {rating}
                 </ReactMarkdown>
               </div>
-              <div className="mt-12 p-8 bg-gradient-to-r from-purple-100/90 to-pink-100/90 rounded-3xl border-2 border-purple-200/60 backdrop-blur-sm shadow-xl">
+              <div className="mt-12 p-8 bg-gradient-to-r from-slate-100/90 to-gray-100/90 rounded-3xl border-2 border-slate-200/60 backdrop-blur-sm shadow-xl">
                 <p className="text-center text-gray-700 font-black text-lg flex items-center justify-center gap-3">
                   <span className="text-3xl">💡</span>
                   <span>
@@ -1077,7 +1078,7 @@ Be specific and helpful!`;
               Powered by <span className="font-semibold text-white">Claude Sonnet 4.5</span> × Anthropic API {useWeather && '× OpenWeather'}
             </p>
             <p className="text-slate-400 text-xs sm:text-sm tracking-widest uppercase font-light">
-              #StyleSync
+              #StyleMe
             </p>
           </div>
         </div>
@@ -1087,7 +1088,7 @@ Be specific and helpful!`;
       {showStyleModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-slate-700 to-teal-700 px-6 sm:px-8 py-6 flex items-center justify-between">
+            <div className="sticky top-0 bg-gradient-to-r from-slate-800 to-orange-800 px-6 sm:px-8 py-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Heart className="w-8 h-8 text-white" fill="white" />
                 <h2 className="text-2xl sm:text-3xl font-black text-white">My Style Profile</h2>
@@ -1115,11 +1116,11 @@ Be specific and helpful!`;
                     onChange={(e) => setNewPref(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addPreference()}
                     placeholder="e.g., minimalist"
-                    className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-teal-600 focus:outline-none font-medium text-slate-800"
+                    className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-orange-600 focus:outline-none font-medium text-slate-800"
                   />
                   <button
                     onClick={addPreference}
-                    className="px-4 py-2 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-orange-600 text-amber-50 rounded-xl font-semibold hover:bg-orange-700 transition-colors flex items-center gap-2"
                   >
                     <Plus className="w-5 h-5" />
                     Add
@@ -1127,11 +1128,11 @@ Be specific and helpful!`;
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {styleProfile.preferences.map((pref, idx) => (
-                    <div key={idx} className="bg-teal-100 text-teal-800 px-4 py-2 rounded-full font-semibold flex items-center gap-2">
+                    <div key={idx} className="bg-orange-100 text-orange-800 px-4 py-2 rounded-full font-semibold flex items-center gap-2">
                       <span>{pref}</span>
                       <button
                         onClick={() => removeItem('preferences', idx)}
-                        className="hover:bg-teal-200 rounded-full p-1 transition-colors"
+                        className="hover:bg-orange-200 rounded-full p-1 transition-colors"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -1158,7 +1159,7 @@ Be specific and helpful!`;
                   />
                   <button
                     onClick={addColor}
-                    className="px-4 py-2 bg-slate-700 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-slate-700 text-amber-50 rounded-xl font-semibold hover:bg-slate-800 transition-colors flex items-center gap-2"
                   >
                     <Plus className="w-5 h-5" />
                     Add
@@ -1197,7 +1198,7 @@ Be specific and helpful!`;
                   />
                   <button
                     onClick={addBrand}
-                    className="px-4 py-2 bg-slate-600 text-white rounded-xl font-semibold hover:bg-slate-700 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-slate-600 text-amber-50 rounded-xl font-semibold hover:bg-slate-700 transition-colors flex items-center gap-2"
                   >
                     <Plus className="w-5 h-5" />
                     Add
@@ -1219,8 +1220,8 @@ Be specific and helpful!`;
               </div>
 
               {/* Info section */}
-              <div className="bg-teal-50 border-2 border-teal-200 rounded-2xl p-4">
-                <p className="text-sm text-teal-900 font-semibold flex items-center gap-2">
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4">
+                <p className="text-sm text-orange-900 font-semibold flex items-center gap-2">
                   <Lightbulb className="w-5 h-5" />
                   <span><span className="font-black">Tip:</span> Your style profile is saved locally on your device and will be used to personalise outfit suggestions and recommendations!</span>
                 </p>
@@ -1228,7 +1229,7 @@ Be specific and helpful!`;
 
               <button
                 onClick={() => setShowStyleModal(false)}
-                className="w-full py-3 bg-gradient-to-r from-slate-700 to-teal-700 text-white rounded-2xl font-semibold text-lg hover:shadow-lg transition-all"
+                className="w-full py-3 bg-gradient-to-r from-slate-700 to-orange-700 text-white rounded-2xl font-semibold text-lg hover:shadow-lg transition-all"
               >
                 Done
               </button>
@@ -1241,7 +1242,7 @@ Be specific and helpful!`;
       {showCalendarModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-slate-700 to-slate-600 px-6 sm:px-8 py-6 flex items-center justify-between">
+            <div className="sticky top-0 bg-gradient-to-r from-slate-800 to-slate-950 px-6 sm:px-8 py-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Calendar className="w-8 h-8 text-white" />
                 <h2 className="text-2xl sm:text-3xl font-black text-white">My Calendar</h2>
@@ -1250,14 +1251,14 @@ Be specific and helpful!`;
                 onClick={() => setShowCalendarModal(false)}
                 className="p-2 hover:bg-white/20 rounded-lg transition-all"
               >
-                <X className="w-6 h-6 text-white" />
+                <X className="w-6 h-6 text-amber-50" />
               </button>
             </div>
 
             <div className="p-6 sm:p-8 space-y-6">
               {/* Upload ICS File */}
               <div>
-                <h3 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-2">
                   <UploadIcon className="w-6 h-6" />
                   Import Calendar
                 </h3>
@@ -1271,7 +1272,7 @@ Be specific and helpful!`;
                 />
                 <button
                   onClick={() => calendarInputRef.current?.click()}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-slate-700 to-slate-600 text-white rounded-2xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-slate-800 to-slate-950 text-white rounded-2xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
                   <UploadIcon className="w-5 h-5" />
                   <span>Choose .ics File</span>
@@ -1365,7 +1366,7 @@ Be specific and helpful!`;
 
               <button
                 onClick={() => setShowCalendarModal(false)}
-                className="w-full py-3 bg-gradient-to-r from-slate-700 to-slate-600 text-white rounded-2xl font-semibold text-lg hover:shadow-lg transition-all"
+                className="w-full py-3 bg-gradient-to-r from-slate-800 to-slate-950 text-white rounded-2xl font-semibold text-lg hover:shadow-lg transition-all"
               >
                 Done
               </button>
