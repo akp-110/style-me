@@ -217,7 +217,6 @@ npm start        # Start Express server (for API routes)
 - ✅ Input validation on API routes
 - ✅ No sensitive data in git history
 
-For detailed security audit, see [security_audit.md](/.gemini/antigravity/brain/6cb094fa-4013-4220-aeb5-6d9bb19271bf/security_audit.md)
 
 ---
 
