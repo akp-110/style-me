@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Heart, Calendar, Eye, Scale, Sun, MessageCircle } from 'lucide-react';
+import { Heart, Calendar, Info } from 'lucide-react';
 import { getUpcomingEvents, formatEventForPrompt } from './calendarIntegration';
 import { useWeather } from './hooks/useWeather';
 import { useStyleProfile } from './hooks/useStyleProfile';
@@ -10,6 +10,7 @@ import { PhotoUpload } from './components/PhotoUpload';
 import { RatingDisplay } from './components/RatingDisplay';
 import { StyleProfileModal } from './components/StyleProfileModal';
 import { CalendarModal } from './components/CalendarModal';
+import { HelpModal } from './components/HelpModal';
 import AlexandraAshfordImage from './assets/Alexandra_Ashford.png';
 import MargotLeclercImage from './assets/Margot_Leclerc.jpg';
 import KaiChenImage from './assets/Kai_Chen.jpg';
@@ -20,8 +21,11 @@ export default function App() {
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [rating, setRating] = useState(null);
+  const [socialSummary, setSocialSummary] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Analyzing Your Style...');
   const [mode, setMode] = useState('balanced');
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Custom hooks
   const weatherHook = useWeather();
@@ -30,7 +34,6 @@ export default function App() {
 
   const modes = {
     professional: {
-      icon: Eye,
       label: 'Alexandra Ashford',
       persona: 'Understated Sophistication',
       bio: 'Museum curator & style theorist analyzing cultural context',
@@ -43,7 +46,6 @@ export default function App() {
       dotColor: 'bg-slate-800'
     },
     balanced: {
-      icon: Scale,
       label: 'Margot Leclerc',
       persona: 'Thoughtful, Elegant, and Refined',
       bio: 'Parisian consultant elevating style with warmth',
@@ -56,7 +58,6 @@ export default function App() {
       dotColor: 'bg-orange-900'
     },
     hype: {
-      icon: Sun,
       label: 'Kai Chen',
       persona: 'Authenticity, Energy and Enthusiam',
       bio: 'Fashion journalist celebrating boldness & expression',
@@ -69,7 +70,6 @@ export default function App() {
       dotColor: 'bg-green-900'
     },
     roast: {
-      icon: MessageCircle,
       label: 'Marcus Stone',
       persona: 'Truthful and Straightforward',
       bio: 'Fashion critic with witty, sharp observations',
@@ -266,6 +266,9 @@ Rate this outfit and provide feedback. Structure your response as:
 
 **Overall Rating: X/10**
 
+**Social Media Summary:**
+[A brief, engaging, 1-sentence summary of your opinion (max 100 chars). This will be on a polaroid photo.]
+
 **Breakdown:**
 - Style: X/10
 ${weatherHook.useWeather && weatherHook.weather ? '- Weather Appropriateness: X/10' : '- Versatility: X/10'}
@@ -286,16 +289,33 @@ ${mode === 'roast' ? '\\n**The Roast:**\\n[Your wittiest observation]' : ''}
 Be specific and helpful!`;
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setPhoto(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      console.log(`Original image: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+
+      // Optimize image (resize and convert to JPEG)
+      const { optimizeImage } = await import('./utils/imageOptimization.js');
+      const { blob, dataUrl } = await optimizeImage(file, 1024, 0.85);
+
+      console.log(`Optimized image: ${(blob.size / 1024 / 1024).toFixed(2)}MB`);
+      console.log(`Size reduction: ${Math.round(((file.size - blob.size) / file.size) * 100)}%`);
+
+      // Create a File object from the blob
+      const optimizedFile = new File([blob], 'optimized.jpg', { type: 'image/jpeg' });
+
+      setPhoto(optimizedFile);
+      setPhotoPreview(dataUrl);
       setRating(null);
+      setSocialSummary(null);
+    } catch (error) {
+      console.error('Error optimizing image:', error);
+      alert('Failed to process image. Please try a different image.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -314,9 +334,28 @@ Be specific and helpful!`;
     setLoading(true);
     setRating(null);
 
+    // Progress messages
+    const messages = [
+      'Analyzing your style...',
+      'Consulting fashion expert...',
+      'Evaluating outfit details...',
+      'Preparing feedback...'
+    ];
+
+    let messageIndex = 0;
+    setLoadingMessage(messages[0]);
+
+    const messageInterval = setInterval(() => {
+      messageIndex = (messageIndex + 1) % messages.length;
+      setLoadingMessage(messages[messageIndex]);
+    }, 2000);
+
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
+        // Detect media type from the data URL
+        const mediaType = reader.result.split(';')[0].split(':')[1];
+        console.log('Detected mediaType:', mediaType);
         const base64Image = reader.result.split(',')[1];
         const fullPrompt = buildPromptWithWeather();
 
@@ -327,6 +366,7 @@ Be specific and helpful!`;
           },
           body: JSON.stringify({
             image: base64Image,
+            mediaType: mediaType,
             mode: mode,
             prompt: fullPrompt
           })
@@ -348,11 +388,19 @@ Be specific and helpful!`;
         }
 
         const ratingText = textBlock.text;
+
+        // Extract Social Media Summary
+        const summaryMatch = ratingText.match(/\*\*Social Media Summary:\*\*\s*\n*(.+?)(?=\n\n|\*\*|$)/s);
+        const summary = summaryMatch ? summaryMatch[1].trim() : "Check out my outfit rating on Style/Me!";
+        setSocialSummary(summary);
+
         setRating(ratingText);
+        clearInterval(messageInterval);
         setLoading(false);
       };
 
       reader.onerror = () => {
+        clearInterval(messageInterval);
         setLoading(false);
         throw new Error('Failed to read image file');
       };
@@ -361,6 +409,7 @@ Be specific and helpful!`;
     } catch (error) {
       console.error('Error:', error);
       alert(`Failed to get rating: ${error.message}`);
+      clearInterval(messageInterval);
       setLoading(false);
     }
   };
@@ -384,12 +433,22 @@ Be specific and helpful!`;
         <div className="max-w-6xl mx-auto w-full">
           {/* Header */}
           <div className="text-center mb-14 animate-slide-down">
-            <h1 className="text-7xl sm:text-9xl lg:text-[12rem] font-black mb-6 relative leading-tight tracking-tight">
-              <span className="bg-gradient-to-r from-slate-200 via-white to-slate-200 bg-clip-text text-transparent block drop-shadow-2xl">
-                <span className="text-amber-50">Style /</span>
-                <span className="text-orange-700">Me</span>
-              </span>
-            </h1>
+            <div className="relative">
+              <h1 className="text-7xl sm:text-9xl lg:text-[12rem] font-black mb-6 relative leading-tight tracking-tight">
+                <span className="bg-gradient-to-r from-slate-200 via-white to-slate-200 bg-clip-text text-transparent block drop-shadow-2xl">
+                  <span className="text-amber-50">Style /</span>
+                  <span className="text-orange-700">Me</span>
+                </span>
+              </h1>
+              {/* Help Button */}
+              <button
+                onClick={() => setShowHelpModal(true)}
+                className="absolute top-4 right-4 sm:right-8 lg:right-16 p-3 bg-slate-800/60 hover:bg-slate-700/80 text-white rounded-full transition-all hover:scale-110 hover:shadow-xl border border-slate-600/50 group"
+                title="How to use Style/Me"
+              >
+                <Info className="w-6 h-6 group-hover:text-orange-400 transition-colors" />
+              </button>
+            </div>
             <p className="text-white/85 text-base sm:text-lg lg:text-2xl max-w-3xl mx-auto font-light tracking-wide mb-8 leading-relaxed">
               AI-powered fashion feedback {weatherHook.useWeather && 'with real-time weather context'}, style preferences, and calendar integration.
             </p>
@@ -428,21 +487,25 @@ Be specific and helpful!`;
             clearPhoto={clearPhoto}
             getRating={getRating}
             loading={loading}
+            loadingMessage={loadingMessage}
             currentMode={currentMode}
           />
 
           {/* Rating Display */}
           <RatingDisplay
             rating={rating}
+            socialSummary={socialSummary}
             currentMode={currentMode}
+            mode={mode}
             useWeather={weatherHook.useWeather}
             weather={weatherHook.weather}
+            photoPreview={photoPreview}
           />
 
           {/* Footer */}
           <div className="text-center mt-20 mb-10 animate-fade-in">
             <p className="text-slate-300 text-sm sm:text-base mb-4 font-light tracking-wide drop-shadow-2xl">
-              Powered by <span className="font-semibold text-white">Claude Sonnet 4.5</span> × Anthropic API {weatherHook.useWeather && '× OpenWeather'}
+              Powered by <span className="font-semibold text-white">Claude Haiku 3.5</span> × Anthropic API {weatherHook.useWeather && '× OpenWeather'}
             </p>
             <p className="text-slate-400 text-xs sm:text-sm tracking-widest uppercase font-light">
               #StyleMe
@@ -456,6 +519,9 @@ Be specific and helpful!`;
 
       {/* Calendar Modal */}
       <CalendarModal {...calendarHook} />
+
+      {/* Help Modal */}
+      <HelpModal showHelpModal={showHelpModal} setShowHelpModal={setShowHelpModal} />
     </div>
   );
 }

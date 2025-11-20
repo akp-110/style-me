@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { X, Calendar, Upload as UploadIcon, Trash2, MapPin } from 'lucide-react';
+import { X, Calendar, Upload as UploadIcon, Trash2, MapPin, Info } from 'lucide-react';
 
 export const CalendarModal = ({
     showCalendarModal,
@@ -53,6 +53,22 @@ export const CalendarModal = ({
                             <UploadIcon className="w-5 h-5" />
                             <span>Choose .ics File</span>
                         </button>
+
+                        {/* Privacy Notice */}
+                        <div className="flex items-start gap-3 mt-4 px-4 py-3 bg-slate-100 border border-slate-300 rounded-xl">
+                            <Info className="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-slate-700 leading-relaxed text-left">
+                                <span className="font-semibold text-slate-900">Privacy:</span> Your calendar file is processed locally in your browser and stored in localStorage. When enabled, calendar event details (titles, dates, locations) are sent to Anthropic&apos;s Claude API for context-aware outfit recommendations. Learn more about{' '}
+                                <a
+                                    href="https://www.anthropic.com/legal/commercial-terms"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-slate-900 font-semibold underline hover:text-slate-600 transition-colors"
+                                >
+                                    Anthropic&apos;s privacy practices
+                                </a>.
+                            </p>
+                        </div>
                     </div>
 
                     {/* Calendar Toggle */}
@@ -91,8 +107,8 @@ export const CalendarModal = ({
                                         <div
                                             key={idx}
                                             className={`p-4 rounded-xl border-2 flex items-start justify-between gap-3 ${isUpcoming
-                                                    ? 'bg-slate-100 border-slate-300'
-                                                    : 'bg-slate-50 border-slate-200 opacity-60'
+                                                ? 'bg-slate-100 border-slate-300'
+                                                : 'bg-slate-50 border-slate-200 opacity-60'
                                                 }`}
                                         >
                                             <div className="flex-1 min-w-0">

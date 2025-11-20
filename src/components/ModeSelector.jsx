@@ -23,7 +23,7 @@ export const ModeSelector = ({ mode, setMode, modes, setRating }) => {
             </h2>
             <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6">
                 {Object.entries(modes).map(([key, modeData]) => {
-                    const { label, persona, bio, image, icon: IconComponent, gradient, glow, dotColor } = modeData;
+                    const { label, persona, bio, image, gradient, glow, dotColor } = modeData;
                     const hoverBorderClass = getHoverBorderClass(key);
 
                     return (
@@ -34,8 +34,8 @@ export const ModeSelector = ({ mode, setMode, modes, setRating }) => {
                                 setRating(null);
                             }}
                             className={`group relative p-4 sm:p-6 lg:p-10 rounded-[2rem] border-2 transition-all duration-500 transform hover:scale-[1.04] hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-50 focus:ring-offset-2 ${mode === key
-                                    ? `bg-gradient-to-br ${gradient} text-white shadow-2xl ${glow} scale-[1.07] border-transparent`
-                                    : `border-slate-300/60 bg-white/90 hover:bg-white ${hoverBorderClass} text-slate-700 hover:shadow-xl`
+                                ? `bg-gradient-to-br ${gradient} text-white shadow-2xl ${glow} scale-[1.07] border-transparent`
+                                : `border-slate-300/60 bg-white/90 hover:bg-white ${hoverBorderClass} text-slate-700 hover:shadow-xl`
                                 }`}
                         >
                             {mode === key && (
@@ -46,17 +46,17 @@ export const ModeSelector = ({ mode, setMode, modes, setRating }) => {
                                     <div className="absolute inset-0 bg-white/30 rounded-[2rem] blur-2xl -z-10 animate-pulse-slow"></div>
                                 </>
                             )}
-                            {image ? (
+                            {image && (
                                 <div className={`mb-5 transition-all duration-500 persona-image-container ${mode === key
-                                        ? 'scale-125 drop-shadow-2xl'
-                                        : 'group-hover:scale-110'
+                                    ? 'scale-125 drop-shadow-2xl'
+                                    : 'group-hover:scale-110'
                                     }`}>
                                     <div className="relative">
                                         {/* Glow background */}
                                         <div className={`persona-glow glow-${key === 'professional' ? 'slate' :
-                                                key === 'balanced' ? 'orange' :
-                                                    key === 'hype' ? 'cyan' :
-                                                        'slate'
+                                            key === 'balanced' ? 'orange' :
+                                                key === 'hype' ? 'cyan' :
+                                                    'slate'
                                             }`}></div>
 
                                         {/* Image */}
@@ -67,13 +67,6 @@ export const ModeSelector = ({ mode, setMode, modes, setRating }) => {
                                             style={{ borderColor: mode === key ? 'white' : 'currentColor' }}
                                         />
                                     </div>
-                                </div>
-                            ) : (
-                                <div className={`text-4xl sm:text-6xl mb-5 transition-all duration-500 ${mode === key
-                                        ? 'scale-125 rotate-12 drop-shadow-2xl'
-                                        : 'group-hover:scale-110 group-hover:rotate-6'
-                                    }`}>
-                                    <IconComponent className="w-16 h-16 sm:w-24 sm:h-24 mx-auto" />
                                 </div>
                             )}
                             <div className={`mode-label font-semibold text-sm xs:text-base sm:text-lg text-center ${mode === key ? 'text-white drop-shadow-lg' : 'text-slate-800'

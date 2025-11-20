@@ -1,24 +1,116 @@
-import React from 'react';
-import { Wand2 } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Wand2, Share2, Download, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import html2canvas from 'html2canvas';
+import { ShareCard } from './ShareCard';
 
-export const RatingDisplay = ({ rating, currentMode, useWeather, weather }) => {
+export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWeather, weather, photoPreview }) => {
+    const [isSharing, setIsSharing] = useState(false);
+    const shareCardRef = useRef(null);
+
     if (!rating) return null;
 
+    // Extract numeric rating
+    const ratingMatch = rating.match(/Overall Rating:\s*(\d+(?:\.\d+)?)\/10/i);
+    const numericRating = ratingMatch ? ratingMatch[1] : '?';
+
+    const handleShare = async () => {
+        if (!shareCardRef.current) {
+            console.error('Share card ref not found');
+            alert('Share card not ready. Please try again.');
+            return;
+        }
+
+        setIsSharing(true);
+        try {
+            // Wait a moment for the card to be fully rendered
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            console.log('Generating canvas from share card...');
+            const canvas = await html2canvas(shareCardRef.current, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: true, // Enable logging for debugging
+                useCORS: true,
+                allowTaint: true,
+                imageTimeout: 0
+            });
+
+            console.log('Canvas generated, creating blob...');
+            const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+
+            if (!imageBlob) {
+                throw new Error('Failed to create image blob');
+            }
+
+            const file = new File([imageBlob], 'style-me-rating.png', { type: 'image/png' });
+
+            console.log('Attempting to share...');
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: 'My Style/Me Rating',
+                    text: `I got a ${numericRating}/10 from ${currentMode.label}! #StyleMe`,
+                    files: [file]
+                });
+                console.log('Shared successfully via Web Share API');
+            } else {
+                // Fallback to download
+                console.log('Web Share API not available, downloading instead...');
+                const link = document.createElement('a');
+                link.download = 'style-me-rating.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                console.log('Download initiated');
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+            alert(`Failed to generate share image: ${error.message}\n\nCheck the browser console for more details.`);
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
     return (
-        <div className="glass-strong rounded-[2.5rem] shadow-2xl p-10 sm:p-14 mb-10 border-2 border-white/40 backdrop-blur-xl animate-scale-in text-left">
-            <div className="flex items-center gap-8 mb-12 pb-10 border-b-4 border-gradient-to-r from-slate-300 to-orange-300">
-                <div className="text-7xl sm:text-8xl animate-bounce-slow relative">
-                    <div className="absolute inset-0 bg-white/30 blur-2xl rounded-full"></div>
-                    <span className="relative">
-                        <currentMode.icon className="w-24 h-24 sm:w-32 sm:h-32 text-slate-700" />
-                    </span>
-                </div>
+        <div className="glass-strong rounded-[2.5rem] shadow-2xl p-10 sm:p-14 mb-10 border-2 border-white/40 backdrop-blur-xl animate-scale-in text-left relative">
+
+            {/* Hidden Share Card for Generation - using opacity instead of positioning off-screen */}
+            <div className="fixed top-0 left-0 opacity-0 pointer-events-none z-[-1]">
+                <ShareCard
+                    ref={shareCardRef}
+                    photoPreview={photoPreview}
+                    advisorName={currentMode.label}
+                    advisorPersona={currentMode.persona}
+                    summary={socialSummary || `Rated ${numericRating}/10 by ${currentMode.label}`}
+                    rating={numericRating}
+                    mode={mode}
+                />
+            </div>
+
+            <div className="flex items-center gap-8 mb-12 pb-10 border-b-4 border-gradient-to-r from-slate-300 to-orange-300 relative">
                 <div className="flex-1">
-                    <h2 className="text-4xl sm:text-5xl font-black text-slate-800 mb-3 flex items-center gap-3">
-                        <Wand2 className="w-8 h-8 text-orange-700" />
-                        <span>{currentMode.label}'s Advice</span>
-                    </h2>
+                    <div className="flex justify-between items-start">
+                        <h2 className="text-4xl sm:text-5xl font-black text-slate-800 mb-3 flex items-center gap-3">
+                            <Wand2 className="w-8 h-8 text-orange-700" />
+                            <span>{currentMode.label}'s Advice</span>
+                        </h2>
+
+                        {/* Share Button */}
+                        {photoPreview && (
+                            <button
+                                onClick={handleShare}
+                                disabled={isSharing}
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Share Result"
+                            >
+                                {isSharing ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Share2 className="w-5 h-5" />
+                                )}
+                                <span className="hidden sm:inline">{isSharing ? 'Generating...' : 'Share'}</span>
+                            </button>
+                        )}
+                    </div>
                     <div className="flex items-center gap-3">
                     </div>
                 </div>

@@ -4,7 +4,7 @@ AI-powered fashion advisor with real-time weather integration, personalized styl
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![React](https://img.shields.io/badge/React-19.2.0-61dafb)
-![Claude](https://img.shields.io/badge/Claude-Sonnet%204.5-orange)
+![Claude](https://img.shields.io/badge/Claude-Haiku%203.5-orange)
 
 ---
 
@@ -77,7 +77,7 @@ api/
 ### Tech Stack
 - **Frontend**: React 19, Vite, TailwindCSS 4
 - **Backend**: Express.js serverless functions
-- **AI**: Anthropic Claude Sonnet 4.5
+- **AI**: Anthropic Claude Haiku 3.5
 - **APIs**: OpenWeatherMap (weather & geocoding)
 - **Icons**: Lucide React
 - **Markdown**: React-Markdown

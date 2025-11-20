@@ -19,11 +19,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { image, prompt, mode = 'balanced' } = req.body;
+    const { image, prompt, mode = 'balanced', mediaType = 'image/jpeg' } = req.body;
+
+    console.log('Received mediaType:', mediaType);
 
     if (!image || !prompt) {
       return res.status(400).json({ error: 'Missing image or prompt' });
     }
+
+    // Validate and normalize media type
+    const validMediaTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+    let normalizedMediaType = mediaType;
+
+    if (!validMediaTypes.includes(mediaType)) {
+      console.warn(`Invalid media type ${mediaType}, defaulting to image/jpeg`);
+      normalizedMediaType = 'image/jpeg';
+    }
+
+    console.log('Using mediaType:', normalizedMediaType);
 
     // Determine max_tokens based on mode for cost optimization
     const maxTokens = MODE_TOKEN_LIMITS[mode] || DEFAULT_TOKEN_LIMIT;
@@ -36,7 +49,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-3-5-haiku-20241022',
         max_tokens: maxTokens,
         messages: [
           {
@@ -46,7 +59,7 @@ export default async function handler(req, res) {
                 type: 'image',
                 source: {
                   type: 'base64',
-                  media_type: 'image/jpeg',
+                  media_type: normalizedMediaType,
                   data: image
                 }
               },
