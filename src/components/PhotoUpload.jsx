@@ -20,7 +20,6 @@ export const PhotoUpload = ({
                     ref={fileInputRef}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp,image/*"
-                    capture="environment"
                     onChange={handleFileUpload}
                     className="hidden"
                 />
