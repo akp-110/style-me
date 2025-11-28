@@ -18,12 +18,14 @@ app.use(express.urlencoded({ extended: true }));
 // Simple passthrough to handlers in /api
 import weatherHandler from './api/weather.js';
 import rateOutfitHandler from './api/rate-outfit.js';
+import rateOutfitStreamHandler from './api/rate-outfit-stream.js';
 import suggestionsHandler from './api/weather-suggestions.js';
 
 app.options('/api/*', (req, res) => res.sendStatus(200));
 
 app.get('/api/weather', (req, res) => weatherHandler(req, res));
 app.post('/api/rate-outfit', (req, res) => rateOutfitHandler(req, res));
+app.post('/api/rate-outfit-stream', (req, res) => rateOutfitStreamHandler(req, res));
 app.get('/api/weather-suggestions', (req, res) => suggestionsHandler(req, res));
 
 app.listen(PORT, () => {

@@ -1,17 +1,17 @@
 import React, { useRef, useState } from 'react';
-import { Wand2, Share2, Download, Loader2 } from 'lucide-react';
+import { Share2, Download, Loader2, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import html2canvas from 'html2canvas';
 import { ShareCard } from './ShareCard';
 
-export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWeather, weather, photoPreview }) => {
+export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWeather, weather, photoPreview, onViewPhoto, onRateAnother }) => {
     const [isSharing, setIsSharing] = useState(false);
     const shareCardRef = useRef(null);
 
     if (!rating) return null;
 
     // Extract numeric rating
-    const ratingMatch = rating.match(/Overall Rating:\s*(\d+(?:\.\d+)?)\/10/i);
+    const ratingMatch = rating.match(/Overall Rating:\s*(\d+(?:\.\d+)??)\/10/i) || rating.match(/Rating:\s*(\d+(?:\.\d+)??)\/10/i);
     const numericRating = ratingMatch ? ratingMatch[1] : '?';
 
     const handleShare = async () => {
@@ -30,7 +30,7 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
             const canvas = await html2canvas(shareCardRef.current, {
                 scale: 2,
                 backgroundColor: '#ffffff',
-                logging: true, // Enable logging for debugging
+                logging: true,
                 useCORS: true,
                 allowTaint: true,
                 imageTimeout: 0
@@ -70,10 +70,12 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
         }
     };
 
-    return (
-        <div className="glass-strong rounded-[2.5rem] shadow-2xl p-10 sm:p-14 mb-10 border-2 border-white/40 backdrop-blur-xl animate-scale-in text-left relative">
+    // Check if content is still streaming (very short or incomplete)
+    const isStreaming = rating.length < 50;
 
-            {/* Hidden Share Card for Generation - using opacity instead of positioning off-screen */}
+    return (
+        <>
+            {/* Hidden Share Card for Generation */}
             <div className="fixed top-0 left-0 opacity-0 pointer-events-none z-[-1]">
                 <ShareCard
                     ref={shareCardRef}
@@ -86,71 +88,112 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
                 />
             </div>
 
-            <div className="flex items-center gap-8 mb-12 pb-10 border-b-4 border-gradient-to-r from-slate-300 to-orange-300 relative">
-                <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                        <h2 className="text-4xl sm:text-5xl font-black text-slate-800 mb-3 flex items-center gap-3">
-                            <Wand2 className="w-8 h-8 text-orange-700" />
-                            <span>{currentMode.label}'s Advice</span>
-                        </h2>
+            {/* Single Compact Advice Card */}
+            <div className="glass-strong rounded-[2.5rem] shadow-2xl p-8 sm:p-12 mb-10 border-2 border-white/40 backdrop-blur-xl animate-scale-in text-left relative overflow-hidden">
 
-                        {/* Share Button */}
-                        {photoPreview && (
+                {/* Streaming indicator glow */}
+                {isStreaming && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
+                )}
+
+                {/* Header with Rating & Share */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between mb-8 pb-6 border-b-2 border-white/20 gap-4">
+                    <div className="flex-1">
+                        {/* Large Rating Display */}
+                        <div className="flex items-baseline gap-4 mb-3">
+                            <span className="text-7xl sm:text-8xl font-black bg-gradient-to-br from-slate-800 via-slate-900 to-black bg-clip-text text-transparent drop-shadow-lg">
+                                {numericRating}
+                            </span>
+                            <span className="text-3xl sm:text-4xl font-bold text-slate-600">/10</span>
+                        </div>
+
+                        {/* Advisor Info */}
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <div className={`w-3 h-3 rounded-full ${currentMode.dotColor} ring-2 ring-white/50 shadow-md`}></div>
+                            <p className="text-slate-700 font-semibold text-lg">
+                                {currentMode.label}
+                            </p>
+                            <span className="text-slate-500 text-sm italic">
+                                {currentMode.persona}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
+                        {/* View Photo Button */}
+                        <button
+                            onClick={onViewPhoto}
+                            className="px-3 sm:px-4 py-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all font-medium text-xs sm:text-sm"
+                        >
+                            View Photo
+                        </button>
+
+                        {/* Rate Another Button */}
+                        <button
+                            onClick={onRateAnother}
+                            className="px-3 sm:px-4 py-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all font-medium text-xs sm:text-sm"
+                        >
+                            Rate Another
+                        </button>
+
+                        {photoPreview && !isStreaming && (
                             <button
                                 onClick={handleShare}
                                 disabled={isSharing}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-2xl hover:shadow-xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed border border-white/20 text-sm"
                                 title="Share Result"
                             >
                                 {isSharing ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                                 ) : (
-                                    <Share2 className="w-5 h-5" />
+                                    <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
                                 )}
-                                <span className="hidden sm:inline">{isSharing ? 'Generating...' : 'Share'}</span>
+                                <span className="font-semibold">{isSharing ? 'Generating...' : 'Share'}</span>
                             </button>
                         )}
                     </div>
-                    <div className="flex items-center gap-3">
-                    </div>
                 </div>
+
+                {/* Advice Content - Optimized for concise format */}
+                <div className="prose prose-lg sm:prose-xl max-w-none">
+                    <ReactMarkdown
+                        components={{
+                            h2: (props) => (
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 mt-6 mb-4 flex items-center gap-2" {...props}>
+                                    <Sparkles className="w-6 h-6 text-orange-600" />
+                                    {props.children}
+                                </h2>
+                            ),
+                            h3: (props) => (
+                                <h3 className="text-xl sm:text-2xl font-bold text-slate-800 mt-5 mb-3" {...props} />
+                            ),
+                            p: (props) => (
+                                <p className="mb-4 text-slate-700 leading-relaxed text-lg" {...props} />
+                            ),
+                            strong: (props) => (
+                                <strong className="font-black text-slate-900 bg-gradient-to-r from-orange-50 to-slate-50 px-2 py-0.5 rounded" {...props} />
+                            ),
+                            ul: (props) => (
+                                <ul className="mb-4 text-slate-700 leading-relaxed text-lg list-disc list-inside" {...props} />
+                            ),
+                            ol: (props) => (
+                                <ol className="mb-4 text-slate-700 leading-relaxed text-lg list-decimal list-inside" {...props} />
+                            ),
+                            li: (props) => (
+                                <li className="mb-2 text-slate-700 text-lg" {...props} />
+                            ),
+                        }}
+                    >
+                        {rating}
+                    </ReactMarkdown>
+                </div>
+
+                {/* Streaming cursor effect */}
+                {isStreaming && (
+                    <span className="inline-block w-2 h-5 bg-slate-800 animate-pulse ml-1"></span>
+                )}
             </div>
-            <div className="prose prose-lg sm:prose-xl max-w-none prose-headings:text-gray-800 prose-headings:font-black prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-ul:text-gray-700 prose-li:text-gray-700">
-                <ReactMarkdown
-                    components={{
-                        h2: (props) => (
-                            <h2 className="text-4xl font-black text-gray-800 mt-10 mb-6 pb-3 border-b-4 border-gradient-to-r from-gray-200 to-slate-200" {...props} />
-                        ),
-                        h3: (props) => (
-                            <h3 className="text-3xl font-bold text-gray-800 mt-8 mb-4" {...props} />
-                        ),
-                        p: (props) => (
-                            <p className="mb-6 text-gray-700 leading-9 text-xl" {...props} />
-                        ),
-                        ul: (props) => (
-                            <ul className="list-disc list-outside mb-8 space-y-4 ml-6 text-xl" {...props} />
-                        ),
-                        li: (props) => (
-                            <li className="text-gray-700 leading-9 marker:text-slate-500 marker:font-bold" {...props} />
-                        ),
-                        strong: (props) => (
-                            <strong className="font-black text-gray-900 bg-gradient-to-r from-slate-100 to-gray-100 px-3 py-1.5 rounded-lg shadow-sm" {...props} />
-                        ),
-                    }}
-                >
-                    {rating}
-                </ReactMarkdown>
-            </div>
-            <div className="mt-12 p-8 bg-gradient-to-r from-slate-100/90 to-gray-100/90 rounded-3xl border-2 border-slate-200/60 backdrop-blur-sm shadow-xl">
-                <p className="text-center text-gray-700 font-black text-lg flex items-center justify-center gap-3">
-                    <span className="text-3xl">💡</span>
-                    <span>
-                        {useWeather && weather
-                            ? 'Weather-aware rating provided! Try different modes for more perspectives!'
-                            : 'Try different modes for completely different perspectives!'}
-                    </span>
-                </p>
-            </div>
-        </div>
+        </>
     );
 };

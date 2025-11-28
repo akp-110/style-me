@@ -38,8 +38,8 @@ export default async function handler(req, res) {
 
     console.log('Using mediaType:', normalizedMediaType);
 
-    // Determine max_tokens based on mode for cost optimization
-    const maxTokens = MODE_TOKEN_LIMITS[mode] || DEFAULT_TOKEN_LIMIT;
+    // Concise responses use consistent lower max_tokens
+    const maxTokens = 600; // Reduced from 1024-2048 for concise format
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

@@ -8,6 +8,7 @@ import { WeatherSection } from './components/WeatherSection';
 import { ModeSelector } from './components/ModeSelector';
 import { PhotoUpload } from './components/PhotoUpload';
 import { RatingDisplay } from './components/RatingDisplay';
+import { FlipContainer } from './components/FlipContainer';
 import { StyleProfileModal } from './components/StyleProfileModal';
 import { CalendarModal } from './components/CalendarModal';
 import { HelpModal } from './components/HelpModal';
@@ -26,6 +27,9 @@ export default function App() {
   const [loadingMessage, setLoadingMessage] = useState('Analyzing Your Style...');
   const [mode, setMode] = useState('balanced');
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [detailedMode, setDetailedMode] = useState(false); // Toggle for detailed vs concise feedback
+  const ratingRef = useRef(null);
+  const [isFlippedToRating, setIsFlippedToRating] = useState(false); // Manual flip control
 
   // Custom hooks
   const weatherHook = useWeather();
@@ -260,9 +264,12 @@ CONSTRAINTS - CRITICAL:
       }
     }
 
-    return `${basePrompt}${weatherContext}${styleContext}${calendarContext}
+    // Detailed vs Concise prompt structure
+    if (detailedMode) {
+      // Detailed format - comprehensive feedback
+      return `${basePrompt}${weatherContext}${styleContext}${calendarContext}
 
-Rate this outfit and provide feedback. Structure your response as:
+Rate this outfit and provide detailed feedback. Structure your response as:
 
 **Overall Rating: X/10**
 
@@ -278,15 +285,37 @@ ${weatherHook.useWeather && weatherHook.weather ? '- Weather Appropriateness: X/
 [2-3 specific positive points]
 
 **Suggestions:**
-[2-3 specific improvements]${styleProfileHook.styleProfile.brands.length > 0 ? '\\n- Recommended Brands/Stores: [Suggest where to shop based on their favourite brands]' : ''}
+[2-3 specific improvements]${styleProfileHook.styleProfile.brands.length > 0 ? '\n- Recommended Brands/Stores: [Suggest where to shop based on their favourite brands]' : ''}
 
-${calendarHook.calendarEvents.length > 0 ? '**Calendar Compatibility:**\\n[How well does this outfit work for upcoming events?]' : ''}
+${calendarHook.calendarEvents.length > 0 ? '**Calendar Compatibility:**\n[How well does this outfit work for upcoming events?]' : ''}
 
-${weatherHook.useWeather && weatherHook.weather ? '**Weather Check:**\\n[Comment on how well this outfit matches current conditions]' : ''}
+${weatherHook.useWeather && weatherHook.weather ? '**Weather Check:**\n[Comment on how well this outfit matches current conditions]' : ''}
 
-${mode === 'roast' ? '\\n**The Roast:**\\n[Your wittiest observation]' : ''}
+${mode === 'roast' ? '\n**The Roast:**\n[Your wittiest observation]' : ''}
 
 Be specific and helpful!`;
+    } else {
+      // Concise format - quick TikTok-style
+      return `${basePrompt}${weatherContext}${styleContext}${calendarContext}
+
+Give a quick, concise outfit rating in modern social media style. Keep it under 100 words total.
+
+**Overall Rating: X/10**
+
+**Social Media Summary:**
+[One punchy sentence, max 100 chars - this goes on the polaroid share card]
+
+**Quick Take:**
+[1-2 sentences capturing your honest perspective on this outfit${weatherHook.useWeather && weatherHook.weather ? ' considering the weather' : ''}${calendarHook.calendarEvents.length > 0 ? ' and upcoming events' : ''}]
+
+**Highlight:**
+[One specific thing that's working really well]
+
+**Improve:**
+[One clear, actionable suggestion${styleProfileHook.styleProfile.brands.length > 0 ? ', with a brand/store recommendation if relevant' : ''}]
+
+${mode === 'roast' ? '\n**Roast:**\n[Your wittiest one-liner]\n' : ''}Be direct, specific, and TikTok-ready.`;
+    }
   };
 
   const handleFileUpload = async (e) => {
@@ -334,12 +363,11 @@ Be specific and helpful!`;
     setLoading(true);
     setRating(null);
 
-    // Progress messages
+    // Shorter loading messages for streaming
     const messages = [
-      'Analyzing your style...',
-      'Consulting fashion expert...',
-      'Evaluating outfit details...',
-      'Preparing feedback...'
+      'Starting analysis...',
+      'AI thinking...',
+      'Almost there...'
     ];
 
     let messageIndex = 0;
@@ -348,7 +376,7 @@ Be specific and helpful!`;
     const messageInterval = setInterval(() => {
       messageIndex = (messageIndex + 1) % messages.length;
       setLoadingMessage(messages[messageIndex]);
-    }, 2000);
+    }, 1500);
 
     try {
       const reader = new FileReader();
@@ -359,7 +387,8 @@ Be specific and helpful!`;
         const base64Image = reader.result.split(',')[1];
         const fullPrompt = buildPromptWithWeather();
 
-        const response = await fetch('/api/rate-outfit', {
+        // Make POST request to initiate streaming
+        const response = await fetch('/api/rate-outfit-stream', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -368,35 +397,79 @@ Be specific and helpful!`;
             image: base64Image,
             mediaType: mediaType,
             mode: mode,
-            prompt: fullPrompt
+            prompt: fullPrompt,
+            detailedMode: detailedMode // Pass detailed mode flag to API
           })
         });
 
-        const data = await response.json();
-
-        if (!response.ok || data.error) {
-          throw new Error(data.error?.message || data.error || 'API request failed');
+        if (!response.ok) {
+          throw new Error('Failed to start streaming');
         }
 
-        if (!data.content || !Array.isArray(data.content) || data.content.length === 0) {
-          throw new Error('Invalid API response: missing or empty content');
-        }
-
-        const textBlock = data.content[0];
-        if (textBlock.type !== 'text' || !textBlock.text) {
-          throw new Error('Invalid API response: expected text content');
-        }
-
-        const ratingText = textBlock.text;
-
-        // Extract Social Media Summary
-        const summaryMatch = ratingText.match(/\*\*Social Media Summary:\*\*\s*\n*(.+?)(?=\n\n|\*\*|$)/s);
-        const summary = summaryMatch ? summaryMatch[1].trim() : "Check out my outfit rating on Style/Me!";
-        setSocialSummary(summary);
-
-        setRating(ratingText);
+        // Clear loading after connection established
         clearInterval(messageInterval);
         setLoading(false);
+        setRating(''); // Start with empty rating
+        setSocialSummary('');
+        setIsFlippedToRating(true); // Flip to show rating
+
+        // Read the stream
+        const reader2 = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let fullText = '';
+
+        try {
+          while (true) {
+            const { done, value } = await reader2.read();
+
+            if (done) {
+              console.log('Stream complete');
+              break;
+            }
+
+            // Decode the chunk
+            buffer += decoder.decode(value, { stream: true });
+
+            // Process complete SSE messages
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+
+                if (data === '[DONE]') {
+                  console.log('Stream ended');
+
+                  // Extract Social Media Summary from complete text
+                  const summaryMatch = fullText.match(/\*\*Social Media Summary:\*\*\s*\n*(.+?)(?=\n\n|\*\*|$)/s);
+                  const summary = summaryMatch ? summaryMatch[1].trim() : "Check out my outfit rating on Style/Me!";
+                  setSocialSummary(summary);
+                  continue;
+                }
+
+                try {
+                  const parsed = JSON.parse(data);
+
+                  if (parsed.type === 'text' && parsed.content) {
+                    fullText += parsed.content;
+                    setRating(fullText);
+                  }
+
+                  if (parsed.type === 'error') {
+                    throw new Error(parsed.error || 'Streaming error');
+                  }
+                } catch (parseError) {
+                  console.error('Error parsing stream data:', parseError);
+                }
+              }
+            }
+          }
+        } catch (streamError) {
+          console.error('Stream reading error:', streamError);
+          throw streamError;
+        }
       };
 
       reader.onerror = () => {
@@ -479,38 +552,44 @@ Be specific and helpful!`;
           {/* Mode Selector */}
           <ModeSelector mode={mode} setMode={setMode} modes={modes} setRating={setRating} />
 
-          {/* Upload Section */}
-          <PhotoUpload
-            photo={photo}
-            photoPreview={photoPreview}
-            handleFileUpload={handleFileUpload}
-            clearPhoto={clearPhoto}
-            getRating={getRating}
-            loading={loading}
-            loadingMessage={loadingMessage}
-            currentMode={currentMode}
+          {/* Flip Container for Upload & Rating */}
+          <FlipContainer
+            isFlipped={isFlippedToRating && !!rating}
+            frontContent={
+              <PhotoUpload
+                photo={photo}
+                photoPreview={photoPreview}
+                handleFileUpload={handleFileUpload}
+                clearPhoto={clearPhoto}
+                getRating={getRating}
+                loading={loading}
+                loadingMessage={loadingMessage}
+                currentMode={currentMode}
+                detailedMode={detailedMode}
+                setDetailedMode={setDetailedMode}
+                hasRating={!!rating}
+                onViewRating={() => setIsFlippedToRating(true)}
+              />
+            }
+            backContent={
+              <RatingDisplay
+                rating={rating}
+                socialSummary={socialSummary}
+                currentMode={currentMode}
+                mode={mode}
+                useWeather={weatherHook.useWeather}
+                weather={weatherHook.weather}
+                photoPreview={photoPreview}
+                onViewPhoto={() => setIsFlippedToRating(false)}
+                onRateAnother={() => {
+                  setRating(null);
+                  setPhoto(null);
+                  setPhotoPreview(null);
+                  setIsFlippedToRating(false);
+                }}
+              />
+            }
           />
-
-          {/* Rating Display */}
-          <RatingDisplay
-            rating={rating}
-            socialSummary={socialSummary}
-            currentMode={currentMode}
-            mode={mode}
-            useWeather={weatherHook.useWeather}
-            weather={weatherHook.weather}
-            photoPreview={photoPreview}
-          />
-
-          {/* Footer */}
-          <div className="text-center mt-20 mb-10 animate-fade-in">
-            <p className="text-slate-300 text-sm sm:text-base mb-4 font-light tracking-wide drop-shadow-2xl">
-              Powered by <span className="font-semibold text-white">Claude Haiku 3.5</span> × Anthropic API {weatherHook.useWeather && '× OpenWeather'}
-            </p>
-            <p className="text-slate-400 text-xs sm:text-sm tracking-widest uppercase font-light">
-              #StyleMe
-            </p>
-          </div>
         </div>
       </div>
 

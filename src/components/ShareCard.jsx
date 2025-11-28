@@ -9,32 +9,37 @@ export const ShareCard = forwardRef(({ photoPreview, advisorName, advisorPersona
             case 'professional':
                 return {
                     borderColor: '#1e293b', // slate-800
-                    textColor: '#0f172a', // slate-900
-                    accentBg: '#1e293b'
+                    textColor: '#3a3226', // warm dark brown
+                    accentBg: '#1e293b',
+                    accentColor: '#64748b'
                 };
             case 'balanced':
                 return {
                     borderColor: '#7c2d12', // orange-900
-                    textColor: '#431407', // orange-950
-                    accentBg: '#7c2d12'
+                    textColor: '#4a2c16', // warm dark brown
+                    accentBg: '#7c2d12',
+                    accentColor: '#c2410c'
                 };
             case 'hype':
                 return {
                     borderColor: '#14532d', // green-900
-                    textColor: '#14532d',
-                    accentBg: '#14532d'
+                    textColor: '#2d3a2e',
+                    accentBg: '#14532d',
+                    accentColor: '#166534'
                 };
             case 'roast':
                 return {
                     borderColor: '#312e81', // indigo-900
-                    textColor: '#1e1b4b', // indigo-950
-                    accentBg: '#312e81'
+                    textColor: '#2e2a47', // deep purple-brown
+                    accentBg: '#312e81',
+                    accentColor: '#4338ca'
                 };
             default:
                 return {
                     borderColor: '#1e293b',
-                    textColor: '#0f172a',
-                    accentBg: '#1e293b'
+                    textColor: '#3a3226',
+                    accentBg: '#1e293b',
+                    accentColor: '#64748b'
                 };
         }
     };
@@ -45,56 +50,126 @@ export const ShareCard = forwardRef(({ photoPreview, advisorName, advisorPersona
         <div
             ref={ref}
             style={{
-                backgroundColor: '#fefefe',
+                backgroundColor: '#f9f6f0', // Aged cream paper
                 padding: '32px',
                 paddingBottom: '64px',
-                boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05)',
-                transform: 'rotate(0deg)', // Straight, no tilt
+                boxShadow: `
+                    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+                    0 10px 20px -5px rgba(0, 0, 0, 0.2),
+                    inset 0 0 0 1px rgba(0, 0, 0, 0.05),
+                    0 0 0 1px rgba(139, 115, 85, 0.15)
+                `,
+                transform: 'rotate(0deg)',
                 width: '500px',
                 margin: '0 auto',
                 position: 'relative',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-                border: '12px solid #f5f3ed', // Cream border for vintage feel
-                borderRadius: '2px'
+                fontFamily: 'Georgia, "Times New Roman", serif',
+                border: '14px solid #e8dcc8', // Vintage cream border
+                borderRadius: '3px',
+                backgroundImage: `
+                    linear-gradient(45deg, rgba(139, 115, 85, 0.02) 25%, transparent 25%),
+                    linear-gradient(-45deg, rgba(139, 115, 85, 0.02) 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, rgba(139, 115, 85, 0.02) 75%),
+                    linear-gradient(-45deg, transparent 75%, rgba(139, 115, 85, 0.02) 75%)
+                `,
+                backgroundSize: '20px 20px',
+                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
             }}
         >
-            {/* Polaroid Photo Area - Square format */}
+            {/* Paper texture overlay */}
             <div style={{
-                backgroundColor: '#000000',
-                aspectRatio: '1/1', // Square format to prevent distortion
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: `
+                    radial-gradient(circle at 20% 50%, rgba(255,250,240,0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(139,115,85,0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 20%, rgba(210,180,140,0.06) 0%, transparent 40%)
+                `,
+                pointerEvents: 'none',
+                borderRadius: '3px'
+            }}></div>
+
+            {/* Subtle edge darkening/aging */}
+            <div style={{
+                position: 'absolute',
+                top: '-14px',
+                left: '-14px',
+                right: '-14px',
+                bottom: '-14px',
+                boxShadow: 'inset 0 0 60px rgba(101, 67, 33, 0.15)',
+                pointerEvents: 'none',
+                borderRadius: '3px'
+            }}></div>
+
+            {/* Polaroid Photo Area - Flexible with vintage aesthetic */}
+            <div style={{
+                backgroundColor: '#1a1816',
+                minHeight: '300px',
+                maxHeight: '500px',
                 marginBottom: '24px',
                 overflow: 'hidden',
-                border: '1px solid #e5e5e5',
-                boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.1)',
-                position: 'relative'
+                border: '2px solid #3a3226',
+                boxShadow: `
+                    inset 0 0 30px rgba(0, 0, 0, 0.3),
+                    0 4px 8px rgba(0, 0, 0, 0.2)
+                `,
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundImage: 'radial-gradient(circle at center, #1a1816 0%, #0a0a08 100%)'
             }}>
                 <img
                     src={photoPreview}
                     alt="Outfit"
                     crossOrigin="anonymous"
                     style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover', // Cover maintains aspect ratio and fills square
+                        maxWidth: '100%',
+                        maxHeight: '500px',
+                        width: 'auto',
+                        height: 'auto',
+                        objectFit: 'contain',
                         objectPosition: 'center',
-                        display: 'block'
+                        display: 'block',
+                        filter: 'contrast(1.05) saturate(0.95) brightness(0.98)' // Subtle vintage color shift
                     }}
                 />
-                {/* Subtle film grain overlay */}
+                {/* Enhanced film grain overlay */}
                 <div style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px)',
+                    background: `
+                        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.05) 2px, rgba(0,0,0,.05) 4px),
+                        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.03) 2px, rgba(0,0,0,.03) 4px)
+                    `,
                     pointerEvents: 'none',
-                    opacity: 0.3
+                    opacity: 0.4
+                }}></div>
+                {/* Vignette effect */}
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)',
+                    pointerEvents: 'none'
                 }}></div>
             </div>
 
             {/* Content Area */}
-            <div style={{ textAlign: 'center', color: styles.textColor }}>
+            <div style={{
+                textAlign: 'center',
+                color: styles.textColor,
+                position: 'relative',
+                zIndex: 1
+            }}>
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -103,69 +178,99 @@ export const ShareCard = forwardRef(({ photoPreview, advisorName, advisorPersona
                     marginBottom: '16px'
                 }}>
                     <span style={{
-                        fontSize: '32px',
+                        fontSize: '36px',
                         fontWeight: '900',
                         color: styles.textColor,
-                        fontFamily: 'Georgia, serif'
+                        fontFamily: 'Georgia, serif',
+                        textShadow: '2px 2px 4px rgba(139, 115, 85, 0.15)',
+                        letterSpacing: '-0.02em'
                     }}>
                         {rating}
                     </span>
                     <span style={{
                         fontSize: '16px',
-                        fontWeight: '600',
+                        fontWeight: '700',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
-                        opacity: '0.5',
-                        fontFamily: 'monospace'
+                        letterSpacing: '0.15em',
+                        opacity: '0.4',
+                        fontFamily: '"Courier New", monospace',
+                        color: styles.textColor
                     }}>
                         / 10
                     </span>
                 </div>
 
                 <p style={{
-                    fontSize: '18px',
-                    lineHeight: '1.6',
-                    marginBottom: '24px',
-                    padding: '0 16px',
+                    fontSize: '17px',
+                    lineHeight: '1.7',
+                    marginBottom: '28px',
+                    padding: '0 20px',
                     fontStyle: 'italic',
-                    fontFamily: 'Georgia, serif',
-                    color: '#2c2c2c'
+                    fontFamily: 'Georgia, "Palatino Linotype", serif',
+                    color: '#3a3226',
+                    textShadow: '1px 1px 2px rgba(255, 255, 255, 0.5)',
+                    fontWeight: '400'
                 }}>
                     "{summary}"
                 </p>
 
                 <div style={{
-                    borderTop: '1px solid #d4d4d4',
+                    borderTop: '2px solid rgba(101, 67, 33, 0.2)',
                     paddingTop: '20px',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-end'
+                    alignItems: 'flex-end',
+                    position: 'relative'
                 }}>
+                    {/* Decorative corner accent - left */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '-2px',
+                        left: '0',
+                        width: '60px',
+                        height: '2px',
+                        background: `linear-gradient(to right, ${styles.accentColor}, transparent)`
+                    }}></div>
+
+                    {/* Decorative corner accent - right */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '-2px',
+                        right: '0',
+                        width: '60px',
+                        height: '2px',
+                        background: `linear-gradient(to left, ${styles.accentColor}, transparent)`
+                    }}></div>
+
                     <div style={{ textAlign: 'left' }}>
                         <p style={{
-                            fontWeight: '600',
-                            fontSize: '11px',
+                            fontWeight: '700',
+                            fontSize: '10px',
                             textTransform: 'uppercase',
-                            letterSpacing: '0.08em',
-                            opacity: '0.4',
-                            marginBottom: '6px',
-                            fontFamily: 'monospace'
+                            letterSpacing: '0.12em',
+                            opacity: '0.35',
+                            marginBottom: '8px',
+                            fontFamily: '"Courier New", monospace',
+                            color: styles.textColor
                         }}>
                             Rated by
                         </p>
                         <p style={{
                             fontWeight: '700',
-                            fontSize: '16px',
+                            fontSize: '17px',
                             color: styles.textColor,
-                            marginBottom: '4px',
-                            fontFamily: 'Georgia, serif'
+                            marginBottom: '5px',
+                            fontFamily: 'Georgia, serif',
+                            textShadow: '1px 1px 2px rgba(139, 115, 85, 0.1)'
                         }}>
                             {advisorName}
                         </p>
                         <p style={{
                             fontSize: '12px',
-                            opacity: '0.6',
-                            fontStyle: 'italic'
+                            opacity: '0.55',
+                            fontStyle: 'italic',
+                            fontFamily: 'Georgia, serif',
+                            color: styles.textColor
                         }}>
                             {advisorPersona}
                         </p>
@@ -173,16 +278,32 @@ export const ShareCard = forwardRef(({ photoPreview, advisorName, advisorPersona
                     <div style={{ textAlign: 'right' }}>
                         <p style={{
                             fontWeight: '900',
-                            fontSize: '18px',
-                            letterSpacing: '-0.02em',
+                            fontSize: '20px',
+                            letterSpacing: '-0.03em',
                             color: styles.textColor,
-                            fontFamily: 'monospace'
+                            fontFamily: '"Courier New", monospace',
+                            textShadow: '2px 2px 3px rgba(139, 115, 85, 0.15)',
+                            opacity: '0.85'
                         }}>
                             #StyleMe
                         </p>
                     </div>
                 </div>
             </div>
+
+            {/* Vintage paper noise overlay */}
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                opacity: 0.08,
+                pointerEvents: 'none',
+                mixBlendMode: 'multiply',
+                borderRadius: '3px'
+            }}></div>
         </div>
     );
 });

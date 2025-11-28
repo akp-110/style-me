@@ -9,7 +9,11 @@ export const PhotoUpload = ({
     getRating,
     loading,
     loadingMessage,
-    currentMode
+    currentMode,
+    detailedMode,
+    setDetailedMode,
+    hasRating,
+    onViewRating
 }) => {
     const fileInputRef = useRef(null);
 
@@ -93,6 +97,30 @@ export const PhotoUpload = ({
                                     </>
                                 )}
                             </button>
+                        </div>
+
+                        {/* View Rating Button - shown when rating exists */}
+                        {hasRating && (
+                            <button
+                                onClick={onViewRating}
+                                className="w-full py-3 px-6 bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-2xl font-semibold text-lg hover:shadow-2xl transition-all hover:scale-105 flex items-center justify-center gap-3 border-2 border-white/40"
+                            >
+                                <span>View Rating</span>
+                            </button>
+                        )}
+
+                        {/* Detailed Mode Checkbox */}
+                        <div className="mt-4 flex items-center justify-center gap-2 text-white/80">
+                            <input
+                                type="checkbox"
+                                id="detailedMode"
+                                checked={detailedMode}
+                                onChange={(e) => setDetailedMode(e.target.checked)}
+                                className="w-4 h-4 rounded border-2 border-white/30 bg-white/10 checked:bg-orange-600 checked:border-orange-600 cursor-pointer transition-all"
+                            />
+                            <label htmlFor="detailedMode" className="text-slate-800 text-sm font-medium cursor-pointer select-none">
+                                📝 Get detailed feedback (longer response)
+                            </label>
                         </div>
                     </div>
                 )}
