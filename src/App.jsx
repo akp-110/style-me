@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { Heart, Calendar, Info } from 'lucide-react';
 import { getUpcomingEvents, formatEventForPrompt } from './calendarIntegration';
 import { useWeather } from './hooks/useWeather';
@@ -11,6 +12,9 @@ import { RatingDisplay } from './components/RatingDisplay';
 import { StyleProfileModal } from './components/StyleProfileModal';
 import { CalendarModal } from './components/CalendarModal';
 import { HelpModal } from './components/HelpModal';
+import Header from './components/Header';
+import LoginPage from './pages/LoginPage';
+import SavedOutfitsPage from './pages/SavedOutfitsPage';
 import AlexandraAshfordImage from './assets/Alexandra_Ashford.png';
 import MargotLeclercImage from './assets/Margot_Leclerc.jpg';
 import KaiChenImage from './assets/Kai_Chen.jpg';
@@ -416,8 +420,12 @@ Be specific and helpful!`;
 
   const currentMode = modes[mode];
 
-  return (
+  // Main home page content
+  const HomePage = () => (
     <div className="min-h-screen animated-gradient relative overflow-hidden font-sans text-center">
+      {/* Header with Auth */}
+      <Header />
+
       {/* Floating background particles */}
       <div className="particle particle-1 floating"></div>
       <div className="particle particle-2 floating-delayed"></div>
@@ -523,5 +531,13 @@ Be specific and helpful!`;
       {/* Help Modal */}
       <HelpModal showHelpModal={showHelpModal} setShowHelpModal={setShowHelpModal} />
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/outfits" element={<SavedOutfitsPage />} />
+    </Routes>
   );
 }

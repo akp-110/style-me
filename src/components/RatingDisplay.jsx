@@ -1,12 +1,18 @@
 import React, { useRef, useState } from 'react';
-import { Wand2, Share2, Download, Loader2 } from 'lucide-react';
+import { Wand2, Share2, Download, Loader2, Bookmark, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import html2canvas from 'html2canvas';
 import { ShareCard } from './ShareCard';
+import { useAuth } from '../context/AuthContext';
+import { useOutfits } from '../hooks/useOutfits';
 
 export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWeather, weather, photoPreview }) => {
     const [isSharing, setIsSharing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
     const shareCardRef = useRef(null);
+    const { user } = useAuth();
+    const { saveOutfit } = useOutfits();
 
     if (!rating) return null;
 
@@ -70,6 +76,27 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
         }
     };
 
+    const handleSave = async () => {
+        if (!user || !photoPreview) return;
+
+        setIsSaving(true);
+        try {
+            await saveOutfit({
+                photoDataUrl: photoPreview,
+                ratingText: rating,
+                socialSummary: socialSummary,
+                advisorMode: mode,
+                numericRating: parseFloat(numericRating) || 0
+            });
+            setIsSaved(true);
+        } catch (error) {
+            console.error('Error saving outfit:', error);
+            alert(`Failed to save outfit: ${error.message}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <div className="glass-strong rounded-[2.5rem] shadow-2xl p-10 sm:p-14 mb-10 border-2 border-white/40 backdrop-blur-xl animate-scale-in text-left relative">
 
@@ -94,22 +121,49 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
                             <span>{currentMode.label}'s Advice</span>
                         </h2>
 
-                        {/* Share Button */}
-                        {photoPreview && (
-                            <button
-                                onClick={handleShare}
-                                disabled={isSharing}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Share Result"
-                            >
-                                {isSharing ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Share2 className="w-5 h-5" />
-                                )}
-                                <span className="hidden sm:inline">{isSharing ? 'Generating...' : 'Share'}</span>
-                            </button>
-                        )}
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2">
+                            {/* Save Button - Only for logged in users */}
+                            {user && photoPreview && (
+                                <button
+                                    onClick={handleSave}
+                                    disabled={isSaving || isSaved}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:scale-105 disabled:cursor-not-allowed ${isSaved
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-orange-600 hover:bg-orange-500 text-white'
+                                        }`}
+                                    title={isSaved ? 'Saved!' : 'Save Outfit'}
+                                >
+                                    {isSaving ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : isSaved ? (
+                                        <Check className="w-5 h-5" />
+                                    ) : (
+                                        <Bookmark className="w-5 h-5" />
+                                    )}
+                                    <span className="hidden sm:inline">
+                                        {isSaving ? 'Saving...' : isSaved ? 'Saved!' : 'Save'}
+                                    </span>
+                                </button>
+                            )}
+
+                            {/* Share Button */}
+                            {photoPreview && (
+                                <button
+                                    onClick={handleShare}
+                                    disabled={isSharing}
+                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Share Result"
+                                >
+                                    {isSharing ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Share2 className="w-5 h-5" />
+                                    )}
+                                    <span className="hidden sm:inline">{isSharing ? 'Generating...' : 'Share'}</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                     </div>
