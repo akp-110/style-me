@@ -1,20 +1,17 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Heart, Calendar, Info } from 'lucide-react';
+
 import { getUpcomingEvents, formatEventForPrompt } from './calendarIntegration';
 import { useWeather } from './hooks/useWeather';
-import { useStyleProfile } from './hooks/useStyleProfile';
-import { useCalendar } from './hooks/useCalendar';
-import { WeatherSection } from './components/WeatherSection';
-import { ModeSelector } from './components/ModeSelector';
-import { PhotoUpload } from './components/PhotoUpload';
-import { RatingDisplay } from './components/RatingDisplay';
-import { StyleProfileModal } from './components/StyleProfileModal';
-import { CalendarModal } from './components/CalendarModal';
-import { HelpModal } from './components/HelpModal';
+import { useProfile } from './hooks/useProfile';
+import { useSubscription, useGuestUsage } from './hooks/useSubscription';
+import { useAuth } from './context/AuthContext';
+import { UpgradeModal } from './components/UpgradeModal';
+
 import Header from './components/Header';
 import LoginPage from './pages/LoginPage';
-import SavedOutfitsPage from './pages/SavedOutfitsPage';
+import UserProfilePage from './pages/UserProfilePage';
+import HomePage from './pages/HomePage';
 import AlexandraAshfordImage from './assets/Alexandra_Ashford.png';
 import MargotLeclercImage from './assets/Margot_Leclerc.jpg';
 import KaiChenImage from './assets/Kai_Chen.jpg';
@@ -30,11 +27,14 @@ export default function App() {
   const [loadingMessage, setLoadingMessage] = useState('Analyzing Your Style...');
   const [mode, setMode] = useState('balanced');
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Custom hooks
   const weatherHook = useWeather();
-  const styleProfileHook = useStyleProfile();
-  const calendarHook = useCalendar();
+  const profileHook = useProfile();
+  const subscriptionHook = useSubscription();
+  const guestUsage = useGuestUsage();
+  const { user } = useAuth();
 
   const modes = {
     professional: {
@@ -247,17 +247,18 @@ CONSTRAINTS - CRITICAL:
     }
 
     let styleContext = '';
-    if (styleProfileHook.styleProfile.preferences.length > 0 || styleProfileHook.styleProfile.colors.length > 0 || styleProfileHook.styleProfile.brands.length > 0) {
+    const { profile } = profileHook;
+    if (profile.stylePreferences.length > 0 || profile.favouriteColors.length > 0 || profile.favouriteBrands.length > 0) {
       const parts = [];
-      if (styleProfileHook.styleProfile.preferences.length > 0) parts.push(`Styles: ${styleProfileHook.styleProfile.preferences.join(', ')}`);
-      if (styleProfileHook.styleProfile.colors.length > 0) parts.push(`Colors: ${styleProfileHook.styleProfile.colors.join(', ')}`);
-      if (styleProfileHook.styleProfile.brands.length > 0) parts.push(`Brands: ${styleProfileHook.styleProfile.brands.join(', ')}`);
+      if (profile.stylePreferences.length > 0) parts.push(`Styles: ${profile.stylePreferences.join(', ')}`);
+      if (profile.favouriteColors.length > 0) parts.push(`Colors: ${profile.favouriteColors.join(', ')}`);
+      if (profile.favouriteBrands.length > 0) parts.push(`Brands: ${profile.favouriteBrands.join(', ')}`);
       styleContext = `\\n\\n**Profile:** ${parts.join(' | ')}`;
     }
 
     let calendarContext = '';
-    if (calendarHook.useCalendarContext && calendarHook.calendarEvents.length > 0) {
-      const upcomingEvents = getUpcomingEvents(calendarHook.calendarEvents, 3);
+    if (profileHook.useCalendarContext && profile.calendarEvents.length > 0) {
+      const upcomingEvents = getUpcomingEvents(profile.calendarEvents, 3);
       if (upcomingEvents.length > 0) {
         const eventSummary = upcomingEvents.map(e => formatEventForPrompt(e)).join(' | ');
         calendarContext = `\\n\\n**Upcoming (3d):** ${eventSummary}`;
@@ -282,9 +283,9 @@ ${weatherHook.useWeather && weatherHook.weather ? '- Weather Appropriateness: X/
 [2-3 specific positive points]
 
 **Suggestions:**
-[2-3 specific improvements]${styleProfileHook.styleProfile.brands.length > 0 ? '\\n- Recommended Brands/Stores: [Suggest where to shop based on their favourite brands]' : ''}
+[2-3 specific improvements]${profile.favouriteBrands.length > 0 ? '\\n- Recommended Brands/Stores: [Suggest where to shop based on their favourite brands]' : ''}
 
-${calendarHook.calendarEvents.length > 0 ? '**Calendar Compatibility:**\\n[How well does this outfit work for upcoming events?]' : ''}
+${profile.calendarEvents.length > 0 ? '**Calendar Compatibility:**\\n[How well does this outfit work for upcoming events?]' : ''}
 
 ${weatherHook.useWeather && weatherHook.weather ? '**Weather Check:**\\n[Comment on how well this outfit matches current conditions]' : ''}
 
@@ -333,6 +334,22 @@ Be specific and helpful!`;
     if (!photo) {
       alert('Please upload a photo first!');
       return;
+    }
+
+    // Check usage limits
+    if (user) {
+      // Authenticated user - check subscription limits
+      if (!subscriptionHook.canRate()) {
+        setShowUpgradeModal(true);
+        return;
+      }
+    } else {
+      // Guest user - check weekly limit
+      const guestCheck = guestUsage.checkGuestCanRate();
+      if (!guestCheck.canRate) {
+        alert(`You've used your free rating this week. Sign up for more ratings! (${guestCheck.daysLeft} days until reset)`);
+        return;
+      }
     }
 
     setLoading(true);
@@ -399,6 +416,14 @@ Be specific and helpful!`;
         setSocialSummary(summary);
 
         setRating(ratingText);
+
+        // Log usage after successful rating
+        if (user) {
+          await subscriptionHook.logUsage('rating');
+        } else {
+          guestUsage.logGuestRating();
+        }
+
         clearInterval(messageInterval);
         setLoading(false);
       };
@@ -420,124 +445,47 @@ Be specific and helpful!`;
 
   const currentMode = modes[mode];
 
-  // Main home page content
-  const HomePage = () => (
-    <div className="min-h-screen animated-gradient relative overflow-hidden font-sans text-center">
-      {/* Header with Auth */}
-      <Header />
 
-      {/* Floating background particles */}
-      <div className="particle particle-1 floating"></div>
-      <div className="particle particle-2 floating-delayed"></div>
-      <div className="particle particle-3 floating-slow"></div>
-      <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-gray-400/20 rounded-full blur-3xl floating"></div>
-      <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-slate-400/20 rounded-full blur-3xl floating-delayed"></div>
-
-      {/* Overlay for better contrast */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10"></div>
-
-      {/* Main Content Wrapper */}
-      <div className="relative z-10 py-10 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-start min-h-screen">
-        <div className="max-w-6xl mx-auto w-full">
-          {/* Header */}
-          <div className="text-center mb-14 animate-slide-down">
-            <div className="relative">
-              <h1 className="text-7xl sm:text-9xl lg:text-[12rem] font-black mb-6 relative leading-tight tracking-tight">
-                <span className="bg-gradient-to-r from-slate-200 via-white to-slate-200 bg-clip-text text-transparent block drop-shadow-2xl">
-                  <span className="text-amber-50">Style /</span>
-                  <span className="text-orange-700">Me</span>
-                </span>
-              </h1>
-              {/* Help Button */}
-              <button
-                onClick={() => setShowHelpModal(true)}
-                className="absolute top-4 right-4 sm:right-8 lg:right-16 p-3 bg-slate-800/60 hover:bg-slate-700/80 text-white rounded-full transition-all hover:scale-110 hover:shadow-xl border border-slate-600/50 group"
-                title="How to use Style/Me"
-              >
-                <Info className="w-6 h-6 group-hover:text-orange-400 transition-colors" />
-              </button>
-            </div>
-            <p className="text-white/85 text-base sm:text-lg lg:text-2xl max-w-3xl mx-auto font-light tracking-wide mb-8 leading-relaxed">
-              AI-powered fashion feedback {weatherHook.useWeather && 'with real-time weather context'}, style preferences, and calendar integration.
-            </p>
-
-            {/* Style Profile Button */}
-            <button
-              onClick={() => styleProfileHook.setShowStyleModal(true)}
-              className="mt-8 min-w-56 px-6 py-3 bg-gradient-to-r from-slate-900 to-orange-950 text-amber-50 rounded-2xl font-semibold text-sm sm:text-base hover:shadow-2xl transition-all hover:scale-105 flex justify-center items-center gap-5 mx-auto"
-            >
-              <Heart className="w-5 h-5" />
-              <span>My Style Profile</span>
-            </button>
-
-            {/* Calendar Button */}
-            <button
-              onClick={() => calendarHook.setShowCalendarModal(true)}
-              className="mt-4 min-w-56 px-6 py-3 bg-gradient-to-r from-slate-800 to-slate-900 text-amber-50 rounded-2xl font-semibold text-sm sm:text-base hover:shadow-2xl transition-all hover:scale-105 flex justify-center items-center gap-2 mx-auto"
-            >
-              <Calendar className="w-5 h-5" />
-              <span>My Calendar</span>
-              {calendarHook.calendarEvents.length > 0 && <span className="text-xs bg-white/30 px-2 py-1 rounded-full">{calendarHook.calendarEvents.length} events</span>}
-            </button>
-          </div>
-
-          {/* Weather Section */}
-          <WeatherSection {...weatherHook} />
-
-          {/* Mode Selector */}
-          <ModeSelector mode={mode} setMode={setMode} modes={modes} setRating={setRating} />
-
-          {/* Upload Section */}
-          <PhotoUpload
-            photo={photo}
-            photoPreview={photoPreview}
-            handleFileUpload={handleFileUpload}
-            clearPhoto={clearPhoto}
-            getRating={getRating}
-            loading={loading}
-            loadingMessage={loadingMessage}
-            currentMode={currentMode}
-          />
-
-          {/* Rating Display */}
-          <RatingDisplay
-            rating={rating}
-            socialSummary={socialSummary}
-            currentMode={currentMode}
-            mode={mode}
-            useWeather={weatherHook.useWeather}
-            weather={weatherHook.weather}
-            photoPreview={photoPreview}
-          />
-
-          {/* Footer */}
-          <div className="text-center mt-20 mb-10 animate-fade-in">
-            <p className="text-slate-300 text-sm sm:text-base mb-4 font-light tracking-wide drop-shadow-2xl">
-              Powered by <span className="font-semibold text-white">Claude Haiku 3.5</span> × Anthropic API {weatherHook.useWeather && '× OpenWeather'}
-            </p>
-            <p className="text-slate-400 text-xs sm:text-sm tracking-widest uppercase font-light">
-              #StyleMe
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Style Profile Modal */}
-      <StyleProfileModal {...styleProfileHook} />
-
-      {/* Calendar Modal */}
-      <CalendarModal {...calendarHook} />
-
-      {/* Help Modal */}
-      <HelpModal showHelpModal={showHelpModal} setShowHelpModal={setShowHelpModal} />
-    </div>
-  );
 
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/outfits" element={<SavedOutfitsPage />} />
-    </Routes>
+    <>
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTier={subscriptionHook.tier}
+        onSelectPlan={(tier) => {
+          // TODO: Stripe checkout integration
+          console.log('Selected tier:', tier);
+          setShowUpgradeModal(false);
+        }}
+      />
+      <Routes>
+        <Route path="/" element={<HomePage
+          weatherHook={weatherHook}
+          profileHook={profileHook}
+          subscriptionHook={subscriptionHook}
+          showUpgradeModal={showUpgradeModal}
+          setShowUpgradeModal={setShowUpgradeModal}
+          mode={mode}
+          setMode={setMode}
+          modes={modes}
+          setRating={setRating}
+          photo={photo}
+          photoPreview={photoPreview}
+          handleFileUpload={handleFileUpload}
+          clearPhoto={clearPhoto}
+          getRating={getRating}
+          loading={loading}
+          loadingMessage={loadingMessage}
+          currentMode={currentMode}
+          rating={rating}
+          socialSummary={socialSummary}
+          showHelpModal={showHelpModal}
+          setShowHelpModal={setShowHelpModal}
+        />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/profile" element={<UserProfilePage />} />
+      </Routes>
+    </>
   );
 }

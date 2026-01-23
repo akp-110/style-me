@@ -1,18 +1,25 @@
 import React, { useRef, useState } from 'react';
-import { Wand2, Share2, Download, Loader2, Bookmark, Check } from 'lucide-react';
+import { Wand2, Share2, Loader2, Bookmark, Check, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import html2canvas from 'html2canvas';
 import { ShareCard } from './ShareCard';
+import { OutfitAnalysisPanel } from './OutfitAnalysisPanel';
+import { ProductRecommendations } from './ProductRecommendations';
 import { useAuth } from '../context/AuthContext';
 import { useOutfits } from '../hooks/useOutfits';
+import { useOutfitAnalysis } from '../hooks/useOutfitAnalysis';
+import { useProductSearch } from '../hooks/useProductSearch';
 
-export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWeather, weather, photoPreview }) => {
+export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWeather, weather, photoPreview, userPreferences = {} }) => {
     const [isSharing, setIsSharing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [showAnalysis, setShowAnalysis] = useState(false);
     const shareCardRef = useRef(null);
     const { user } = useAuth();
     const { saveOutfit } = useOutfits();
+    const { analysis, loading: analysisLoading, error: analysisError, analyzeOutfit } = useOutfitAnalysis();
+    const { products, loading: productsLoading, error: productsError, searchQuery, searchProducts, clearProducts } = useProductSearch();
 
     if (!rating) return null;
 
@@ -97,6 +104,28 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
         }
     };
 
+    const handleAnalyze = async () => {
+        if (!photoPreview) return;
+        setShowAnalysis(true);
+
+        // Extract base64 from data URL
+        const base64 = photoPreview.split(',')[1];
+        await analyzeOutfit(base64, 'image/jpeg', userPreferences);
+    };
+
+    const handleSearchProduct = (query) => {
+        searchProducts(query, {
+            stores: userPreferences?.favoriteBrands || ['H&M', 'ASOS', 'Amazon'],
+            country: userPreferences?.countryCode || 'US',
+            limit: 8
+        });
+    };
+
+    const handleSaveToWishlist = (product) => {
+        // TODO: Phase 4 - Add to Supabase wishlist
+        console.log('Save to wishlist:', product);
+    };
+
     return (
         <div className="glass-strong rounded-[2.5rem] shadow-2xl p-10 sm:p-14 mb-10 border-2 border-white/40 backdrop-blur-xl animate-scale-in text-left relative">
 
@@ -123,14 +152,36 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2">
+                            {/* Analyze Style Button */}
+                            {photoPreview && (
+                                <button
+                                    onClick={handleAnalyze}
+                                    disabled={analysisLoading}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:scale-105 ${showAnalysis && analysis
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white'
+                                        }`}
+                                    title="Get detailed color and style analysis"
+                                >
+                                    {analysisLoading ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="w-5 h-5" />
+                                    )}
+                                    <span className="hidden sm:inline">
+                                        {analysisLoading ? 'Analyzing...' : 'Analyze Style'}
+                                    </span>
+                                </button>
+                            )}
+
                             {/* Save Button - Only for logged in users */}
                             {user && photoPreview && (
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving || isSaved}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:scale-105 disabled:cursor-not-allowed ${isSaved
-                                            ? 'bg-green-600 text-white'
-                                            : 'bg-orange-600 hover:bg-orange-500 text-white'
+                                        ? 'bg-green-600 text-white'
+                                        : 'bg-orange-600 hover:bg-orange-500 text-white'
                                         }`}
                                     title={isSaved ? 'Saved!' : 'Save Outfit'}
                                 >
@@ -195,6 +246,34 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
                     {rating}
                 </ReactMarkdown>
             </div>
+
+            {/* Outfit Analysis Panel */}
+            {showAnalysis && (
+                <div className="mt-8 pt-8 border-t-2 border-slate-200">
+                    <OutfitAnalysisPanel
+                        analysis={analysis}
+                        loading={analysisLoading}
+                        error={analysisError}
+                        onSearchProduct={handleSearchProduct}
+                    />
+                </div>
+            )}
+
+            {/* Product Recommendations */}
+            {(products.length > 0 || productsLoading) && (
+                <div className="mt-8">
+                    <ProductRecommendations
+                        products={products}
+                        loading={productsLoading}
+                        error={productsError}
+                        searchQuery={searchQuery}
+                        onSaveToWishlist={handleSaveToWishlist}
+                        onSearchMore={() => handleSearchProduct(searchQuery)}
+                        onClose={clearProducts}
+                    />
+                </div>
+            )}
+
             <div className="mt-12 p-8 bg-gradient-to-r from-slate-100/90 to-gray-100/90 rounded-3xl border-2 border-slate-200/60 backdrop-blur-sm shadow-xl">
                 <p className="text-center text-gray-700 font-black text-lg flex items-center justify-center gap-3">
                     <span className="text-3xl">💡</span>

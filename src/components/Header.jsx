@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, LogOut, LogIn, Images } from 'lucide-react';
+import { User, LogOut, LogIn } from 'lucide-react';
 
 export default function Header() {
     const { user, signOut, loading } = useAuth();
@@ -18,22 +18,14 @@ export default function Header() {
         <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50">
             {user ? (
                 <div className="flex items-center gap-3">
-                    {/* User Info */}
-                    <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-800/60 backdrop-blur-sm border border-slate-600/50 rounded-full">
-                        <User className="w-4 h-4 text-orange-400" />
-                        <span className="text-white/90 text-sm font-medium truncate max-w-32">
-                            {user.email}
-                        </span>
-                    </div>
-
-                    {/* My Outfits Button */}
+                    {/* My Profile Button */}
                     <button
-                        onClick={() => navigate('/outfits')}
+                        onClick={() => navigate('/profile')}
                         className="flex items-center gap-2 px-4 py-2 bg-orange-600/80 hover:bg-orange-500 backdrop-blur-sm border border-orange-500/50 rounded-full text-white transition-all hover:scale-105"
-                        title="My Saved Outfits"
+                        title="My Profile"
                     >
-                        <Images className="w-4 h-4" />
-                        <span className="text-sm font-medium hidden sm:inline">My Outfits</span>
+                        <User className="w-4 h-4" />
+                        <span className="text-sm font-medium hidden sm:inline">My Profile</span>
                     </button>
 
                     {/* Logout Button */}

@@ -20,7 +20,7 @@ export function useOutfits() {
 
         try {
             const { data, error: fetchError } = await supabase
-                .from('outfits')
+                .from('saved_outfits')
                 .select('*')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
@@ -57,7 +57,7 @@ export function useOutfits() {
             const blob = new Blob([byteArray], { type: 'image/jpeg' });
 
             const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('outfit-photos')
+                .from('outfit-images')
                 .upload(fileName, blob, {
                     contentType: 'image/jpeg',
                     upsert: false
@@ -67,15 +67,15 @@ export function useOutfits() {
 
             // Get public URL
             const { data: { publicUrl } } = supabase.storage
-                .from('outfit-photos')
+                .from('outfit-images')
                 .getPublicUrl(fileName);
 
             // Save outfit record
             const { data, error: insertError } = await supabase
-                .from('outfits')
+                .from('saved_outfits')
                 .insert({
                     user_id: user.id,
-                    photo_url: publicUrl,
+                    image_url: publicUrl,
                     rating_text: ratingText,
                     social_summary: socialSummary,
                     advisor_mode: advisorMode,
@@ -99,7 +99,7 @@ export function useOutfits() {
     };
 
     // Delete an outfit
-    const deleteOutfit = async (outfitId, photoUrl) => {
+    const deleteOutfit = async (outfitId, imageUrl) => {
         if (!user) return;
 
         setLoading(true);
@@ -107,12 +107,12 @@ export function useOutfits() {
 
         try {
             // Delete from storage
-            const fileName = photoUrl.split('/').slice(-2).join('/');
-            await supabase.storage.from('outfit-photos').remove([fileName]);
+            const fileName = imageUrl.split('/').slice(-2).join('/');
+            await supabase.storage.from('outfit-images').remove([fileName]);
 
             // Delete record
             const { error: deleteError } = await supabase
-                .from('outfits')
+                .from('saved_outfits')
                 .delete()
                 .eq('id', outfitId)
                 .eq('user_id', user.id);
