@@ -87,14 +87,9 @@ export const HomePage = ({
                         <ModeSelector mode={mode} setMode={setMode} modes={modes} setRating={setRating} />
 
                         <PhotoUpload
-                            photo={photo}
                             photoPreview={photoPreview}
                             handleFileUpload={handleFileUpload}
                             clearPhoto={clearPhoto}
-                            getRating={getRating}
-                            loading={loading}
-                            loadingMessage={loadingMessage}
-                            currentMode={currentMode}
                         />
                     </>
                 )}

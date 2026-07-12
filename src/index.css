@@ -92,46 +92,19 @@
 }
 
 /* ==================================================================
-   LEGACY — styles still referenced by not-yet-restyled components.
-   DELETE THIS ENTIRE BLOCK in the cleanup task.
+   LEGACY (trimmed) — only classes still used by LoginPage and
+   UserProfilePage, which keep the old dark look until their own
+   redesign pass. Delete when those pages are restyled.
    ================================================================== */
 .animated-gradient { background: linear-gradient(180deg, #030810, #030810); }
-.glass {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(10px) saturate(130%);
-  border: 1px solid rgba(255,255,255,0.05);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-}
-.glass-strong {
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(12px) saturate(130%);
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-}
 @keyframes float { 0%,100%{ transform: translateY(0); opacity:.7 } 50%{ transform: translateY(-18px); opacity:.85 } }
 .floating { animation: float 12s ease-in-out infinite; }
 .floating-delayed { animation: float 14s ease-in-out infinite; animation-delay: -3s; }
 .floating-slow { animation: float 20s ease-in-out infinite; animation-delay: -6s; }
-.glow-muted { box-shadow: 0 4px 24px rgba(59,89,152,0.15); }
-.glow-sage { box-shadow: 0 6px 28px rgba(45,95,79,0.12); }
-.glow-gold { box-shadow: 0 6px 28px rgba(90,124,153,0.12); }
 .particle { position:absolute; border-radius:50%; pointer-events:none; opacity:.5; filter: blur(30px); }
 .particle-1 { width:120px; height:120px; background: radial-gradient(circle, rgba(59,89,152,0.08) 0%, transparent 70%); top:8%; left:8%; }
 .particle-2 { width:160px; height:160px; background: radial-gradient(circle, rgba(45,95,79,0.06) 0%, transparent 70%); top:60%; right:8%; }
 .particle-3 { width:140px; height:140px; background: radial-gradient(circle, rgba(90,124,153,0.05) 0%, transparent 70%); bottom:18%; left:20%; }
-.btn-soft {
-  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.05));
-  color: #f5f7fa;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-.btn-soft[disabled] { opacity:.5; cursor:not-allowed; }
-.mode-label { word-break: break-word; overflow-wrap: break-word; line-height: 1.2; }
-.persona-image-container { perspective: 1000px; }
-.persona-image { transform-style: preserve-3d; }
-.persona-glow { position:absolute; inset:-12px; border-radius:9999px; opacity:0; }
-.gradient-text { background: linear-gradient(90deg, #3b5998, #2d5f4f, #5a7c99); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
 .animate-slide-down { animation: slideDown 0.35s cubic-bezier(0.16,1,0.3,1); }
-.animate-pulse-slow { animation: pulse 5s cubic-bezier(.4,0,.6,1) infinite; }
-.animate-bounce-slow { animation: bounce 5s infinite; }
 /* ================== END LEGACY ================== */
