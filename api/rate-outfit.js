@@ -3,6 +3,7 @@
 
 import { setCorsHeaders } from './middleware/cors.js';
 import { MODE_TOKEN_LIMITS, DEFAULT_TOKEN_LIMIT } from './config/constants.js';
+import { enforceLimits, recordUsage, limitResponseBody } from './middleware/enforceLimits.js';
 
 // api/rate-outfit.js
 export default async function handler(req, res) {
@@ -25,6 +26,12 @@ export default async function handler(req, res) {
 
     if (!image || !prompt) {
       return res.status(400).json({ error: 'Missing image or prompt' });
+    }
+
+    // Server-side rate limit (identity: Supabase JWT or hashed guest IP)
+    const gate = await enforceLimits(req, 'rating');
+    if (!gate.allowed) {
+      return res.status(429).json(limitResponseBody('rating', gate));
     }
 
     // Validate and normalize media type
@@ -78,6 +85,8 @@ export default async function handler(req, res) {
     if (!response.ok) {
       throw new Error(data.error?.message || 'API request failed');
     }
+
+    await recordUsage(gate.identity, 'rating');
 
     res.status(200).json(data);
   } catch (error) {

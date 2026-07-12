@@ -2,6 +2,7 @@
 /* global process */
 
 import { setCorsHeaders } from './middleware/cors.js';
+import { enforceLimits, recordUsage, limitResponseBody } from './middleware/enforceLimits.js';
 
 /**
  * Enhanced Outfit Analysis API
@@ -24,6 +25,11 @@ export default async function handler(req, res) {
 
         if (!image) {
             return res.status(400).json({ error: 'Missing image' });
+        }
+
+        const gate = await enforceLimits(req, 'analysis');
+        if (!gate.allowed) {
+            return res.status(429).json(limitResponseBody('analysis', gate));
         }
 
         // Validate media type
@@ -140,6 +146,8 @@ IMPORTANT: Return ONLY valid JSON, no markdown code blocks or explanations. Extr
             console.error('Raw text:', textContent);
             throw new Error('Failed to parse outfit analysis');
         }
+
+        await recordUsage(gate.identity, 'analysis');
 
         res.status(200).json({
             success: true,
