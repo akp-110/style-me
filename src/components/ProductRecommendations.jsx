@@ -36,9 +36,9 @@ export const ProductCard = ({ product, onSaveToWishlist }) => {
                 />
 
                 {/* Store Badge */}
-                <div className="absolute top-3 left-3">
-                    <span className="chip-hard">
-                        {product.store}
+                <div className="absolute top-3 left-3 right-12">
+                    <span className="chip-hard max-w-full">
+                        <span className="truncate">{product.store}</span>
                     </span>
                 </div>
 
@@ -75,7 +75,7 @@ export const ProductCard = ({ product, onSaveToWishlist }) => {
                 )}
 
                 {/* Price */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-lg font-bold text-ink">{product.price}</span>
 
                     {/* View Button */}
