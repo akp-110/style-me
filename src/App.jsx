@@ -7,6 +7,7 @@ import { useProfile } from './hooks/useProfile';
 import { useSubscription, useGuestUsage } from './hooks/useSubscription';
 import { useAuth } from './context/AuthContext';
 import { UpgradeModal } from './components/UpgradeModal';
+import { getAuthHeaders } from './lib/authHeaders';
 
 import Header from './components/Header';
 import LoginPage from './pages/LoginPage';
@@ -331,7 +332,7 @@ Be specific and helpful!`;
       // Guest user - check weekly limit
       const guestCheck = guestUsage.checkGuestCanRate();
       if (!guestCheck.canRate) {
-        alert(`You've used your free rating this week. Sign up for more ratings! (${guestCheck.daysLeft} days until reset)`);
+        alert(`You've used your 5 free ratings this week. Sign up for more! (${guestCheck.daysLeft} days until reset)`);
         return;
       }
     }
@@ -368,6 +369,7 @@ Be specific and helpful!`;
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...(await getAuthHeaders())
           },
           body: JSON.stringify({
             image: base64Image,
@@ -378,6 +380,17 @@ Be specific and helpful!`;
         });
 
         const data = await response.json();
+
+        if (response.status === 429) {
+          clearInterval(messageInterval);
+          setLoading(false);
+          if (user) {
+            setShowUpgradeModal(true);
+          } else {
+            alert(data.error || "You've used your free ratings this week. Sign up for more!");
+          }
+          return;
+        }
 
         if (!response.ok || data.error) {
           throw new Error(data.error?.message || data.error || 'API request failed');
@@ -407,9 +420,11 @@ Be specific and helpful!`;
 
         setRating(ratingText);
 
-        // Log usage after successful rating
+        // The server records usage (single writer); bump the local count
+        // for the header chip, and keep the guest localStorage marker as
+        // the friendly first-line check.
         if (user) {
-          await subscriptionHook.logUsage('rating');
+          subscriptionHook.bumpUsageCount();
         } else {
           guestUsage.logGuestRating();
         }

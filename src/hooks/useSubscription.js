@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 
 // Tier limits configuration
 const TIER_LIMITS = {
-    free: 5,
-    style_plus: 50,
+    free: 20,
+    style_plus: 100,
     style_pro: Infinity
 };
 
@@ -33,7 +33,7 @@ export function useSubscription() {
     const [subscription, setSubscription] = useState(null);
 
     // Calculate usage limit based on tier
-    const usageLimit = TIER_LIMITS[tier] || 3;
+    const usageLimit = TIER_LIMITS[tier] ?? TIER_LIMITS.free;
     const remaining = tier === 'style_pro' ? Infinity : Math.max(0, usageLimit - usageCount);
 
     // Fetch subscription and usage data
@@ -100,24 +100,9 @@ export function useSubscription() {
         }
     }, [user]);
 
-    // Log a usage action
-    const logUsage = async (actionType = 'rating') => {
-        if (!user) return false;
-
-        try {
-            const { error } = await supabase
-                .from('usage_logs')
-                .insert({ user_id: user.id, action_type: actionType });
-
-            if (error) throw error;
-
-            setUsageCount(prev => prev + 1);
-            return true;
-        } catch (err) {
-            console.error('Error logging usage:', err);
-            return false;
-        }
-    };
+    // Usage rows are written by the API (single writer). This just keeps
+    // the header chip in sync without a refetch.
+    const bumpUsageCount = () => setUsageCount(prev => prev + 1);
 
     // Check if user can perform a rating
     const canRate = () => {
@@ -160,7 +145,7 @@ export function useSubscription() {
         // Methods
         canRate,
         canUseFeature,
-        logUsage,
+        bumpUsageCount,
         refreshSubscription: fetchSubscriptionData,
         getResetDate,
         getRemainingText,

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { getAuthHeaders } from '../lib/authHeaders';
 
 /**
  * Hook for enhanced outfit analysis with color extraction and recommendations
@@ -17,6 +18,7 @@ export const useOutfitAnalysis = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(await getAuthHeaders())
                 },
                 body: JSON.stringify({
                     image: imageBase64,
@@ -26,6 +28,10 @@ export const useOutfitAnalysis = () => {
             });
 
             const data = await response.json();
+
+            if (response.status === 429) {
+                throw new Error(data.error || 'Analysis limit reached — try again later.');
+            }
 
             if (!response.ok || !data.success) {
                 throw new Error(data.error || 'Analysis failed');
