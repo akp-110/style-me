@@ -32,3 +32,6 @@ dist/
 build/
 .vercel
 .netlify
+
+# Brainstorming session files
+.superpowers/
