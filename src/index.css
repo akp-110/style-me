@@ -22,6 +22,7 @@
     background: var(--color-paper);
     color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     margin: 0;
     overflow-x: hidden;
   }
@@ -33,7 +34,7 @@
   .card-hard {
     background: #fff;
     border: 3px solid var(--color-ink);
-    box-shadow: 4px 4px 0 0 var(--color-ink);
+    box-shadow: var(--shadow-hard);
   }
 
   /* Small bordered chip (top bar, badges, small buttons) */
@@ -129,7 +130,8 @@
 .persona-image { transform-style: preserve-3d; }
 .persona-glow { position:absolute; inset:-12px; border-radius:9999px; opacity:0; }
 .gradient-text { background: linear-gradient(90deg, #3b5998, #2d5f4f, #5a7c99); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.animate-slide-down { animation: slideUp 0.35s cubic-bezier(0.16,1,0.3,1); }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slide-down { animation: slideDown 0.35s cubic-bezier(0.16,1,0.3,1); }
 .animate-pulse-slow { animation: pulse 5s cubic-bezier(.4,0,.6,1) infinite; }
 .animate-bounce-slow { animation: bounce 5s infinite; }
 /* ================== END LEGACY ================== */
