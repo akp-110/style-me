@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -38,49 +38,39 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen animated-gradient relative overflow-hidden font-sans flex items-center justify-center">
-            {/* Background effects */}
-            <div className="particle particle-1 floating"></div>
-            <div className="particle particle-2 floating-delayed"></div>
-            <div className="particle particle-3 floating-slow"></div>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10"></div>
-
-            <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="min-h-screen bg-paper text-ink font-sans flex items-center justify-center px-4 py-10">
+            <div className="w-full max-w-md">
                 {/* Logo */}
-                <div className="text-center mb-8 animate-slide-down">
-                    <h1 className="text-5xl sm:text-6xl font-black mb-2">
-                        <span className="text-amber-50">Style /</span>
-                        <span className="text-orange-700">Me</span>
+                <div className="text-center mb-8 animate-fade-in">
+                    <h1 className="font-black uppercase tracking-tight leading-[0.9] text-5xl sm:text-6xl">
+                        Style/Me<span className="text-acid-dim">.</span>
                     </h1>
-                    <p className="text-white/70 text-sm">AI-powered fashion feedback</p>
+                    <p className="label-caps text-ink/50 mt-3">AI-powered fashion feedback</p>
                 </div>
 
                 {/* Login Card */}
-                <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8 shadow-2xl animate-fade-in">
-                    <div className="flex items-center justify-center gap-2 mb-6">
-                        <Sparkles className="w-5 h-5 text-orange-400" />
-                        <h2 className="text-2xl font-bold text-white">
-                            {isLogin ? 'Welcome Back' : 'Create Account'}
-                        </h2>
-                    </div>
+                <div className="card-hard p-6 sm:p-8 animate-scale-in">
+                    <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-center">
+                        {isLogin ? 'Welcome back' : 'Create account'}
+                    </h2>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Email Input */}
                         <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/40" />
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Email address"
                                 required
-                                className="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                                className="w-full pl-10 pr-3 py-3 border-2 border-ink bg-white text-sm font-medium placeholder:text-ink/40 focus:outline-none focus:ring-4 focus:ring-acid"
                             />
                         </div>
 
                         {/* Password Input */}
                         <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink/40" />
                             <input
                                 type="password"
                                 value={password}
@@ -88,20 +78,20 @@ export default function LoginPage() {
                                 placeholder="Password"
                                 required
                                 minLength={6}
-                                className="w-full pl-12 pr-4 py-4 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                                className="w-full pl-10 pr-3 py-3 border-2 border-ink bg-white text-sm font-medium placeholder:text-ink/40 focus:outline-none focus:ring-4 focus:ring-acid"
                             />
                         </div>
 
                         {/* Error Message */}
                         {error && (
-                            <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm">
+                            <div className="p-3 border-2 border-ink bg-white text-sm font-bold">
                                 {error}
                             </div>
                         )}
 
                         {/* Success Message */}
                         {message && (
-                            <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-green-300 text-sm">
+                            <div className="p-3 border-2 border-ink bg-acid/40 text-sm font-bold">
                                 {message}
                             </div>
                         )}
@@ -110,13 +100,13 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 text-white font-semibold rounded-xl transition-all hover:shadow-lg hover:shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full py-3.5 bg-acid border-[3px] border-ink shadow-hard btn-press font-black uppercase tracking-wide flex items-center justify-center gap-2"
                         >
                             {loading ? (
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <div className="w-5 h-5 border-[3px] border-ink border-t-transparent rounded-full animate-spin"></div>
                             ) : (
                                 <>
-                                    {isLogin ? 'Sign In' : 'Create Account'}
+                                    {isLogin ? 'Sign in' : 'Create account'}
                                     <ArrowRight className="w-5 h-5" />
                                 </>
                             )}
@@ -131,11 +121,11 @@ export default function LoginPage() {
                                 setError('');
                                 setMessage('');
                             }}
-                            className="text-slate-400 hover:text-white transition-colors text-sm"
+                            className="text-sm text-ink/60 hover:text-ink transition-colors"
                         >
                             {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                            <span className="text-orange-400 font-semibold">
-                                {isLogin ? 'Sign Up' : 'Sign In'}
+                            <span className="font-bold underline">
+                                {isLogin ? 'Sign up' : 'Sign in'}
                             </span>
                         </button>
                     </div>
@@ -145,7 +135,7 @@ export default function LoginPage() {
                 <div className="text-center mt-6">
                     <button
                         onClick={() => navigate('/')}
-                        className="text-slate-400 hover:text-white transition-colors text-sm"
+                        className="chip-hard btn-press shadow-hard-sm"
                     >
                         ← Back to Style/Me
                     </button>

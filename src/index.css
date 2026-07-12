@@ -91,20 +91,3 @@
   }
 }
 
-/* ==================================================================
-   LEGACY (trimmed) — only classes still used by LoginPage and
-   UserProfilePage, which keep the old dark look until their own
-   redesign pass. Delete when those pages are restyled.
-   ================================================================== */
-.animated-gradient { background: linear-gradient(180deg, #030810, #030810); }
-@keyframes float { 0%,100%{ transform: translateY(0); opacity:.7 } 50%{ transform: translateY(-18px); opacity:.85 } }
-.floating { animation: float 12s ease-in-out infinite; }
-.floating-delayed { animation: float 14s ease-in-out infinite; animation-delay: -3s; }
-.floating-slow { animation: float 20s ease-in-out infinite; animation-delay: -6s; }
-.particle { position:absolute; border-radius:50%; pointer-events:none; opacity:.5; filter: blur(30px); }
-.particle-1 { width:120px; height:120px; background: radial-gradient(circle, rgba(59,89,152,0.08) 0%, transparent 70%); top:8%; left:8%; }
-.particle-2 { width:160px; height:160px; background: radial-gradient(circle, rgba(45,95,79,0.06) 0%, transparent 70%); top:60%; right:8%; }
-.particle-3 { width:140px; height:140px; background: radial-gradient(circle, rgba(90,124,153,0.05) 0%, transparent 70%); bottom:18%; left:20%; }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-.animate-slide-down { animation: slideDown 0.35s cubic-bezier(0.16,1,0.3,1); }
-/* ================== END LEGACY ================== */
