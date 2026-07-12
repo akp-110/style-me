@@ -141,11 +141,13 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
                         }}
                     >
                         <div style={{ position: 'relative', border: '2px solid #111111', background: '#DDD8CF' }}>
+                            {/* natural aspect ratio — object-fit would crop on screen,
+                                and html2canvas renders it squashed in the captured PNG */}
                             <img
                                 src={photoPreview}
                                 alt="Rated outfit"
                                 crossOrigin="anonymous"
-                                style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', display: 'block' }}
+                                style={{ width: '100%', height: 'auto', display: 'block' }}
                             />
                             <div style={{
                                 position: 'absolute', top: '-10px', right: '-10px',
