@@ -20,14 +20,18 @@ export const ModeSelector = ({ mode, setMode, modes, setRating }) => {
                             aria-checked={selected}
                             title={m.label}
                             onClick={() => { setMode(key); setRating(null); }}
-                            className={`relative w-14 h-14 rounded-full border-2 border-ink btn-press flex-shrink-0 ${
+                            className={`relative w-14 h-14 rounded-full border-2 border-ink btn-press flex-shrink-0 select-none ${
                                 selected ? 'shadow-hard ring-4 ring-acid' : 'shadow-hard-sm'
                             }`}
                         >
+                            {/* pointer-events-none + touch-callout off stop mobile
+                                browsers' long-press image preview/save sheet */}
                             <img
                                 src={m.image}
                                 alt={m.label}
-                                className="w-full h-full rounded-full object-cover grayscale contrast-125"
+                                draggable={false}
+                                className="w-full h-full rounded-full object-cover grayscale contrast-125 pointer-events-none select-none"
+                                style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
                             />
                             {selected && (
                                 <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-ink text-acid rounded-full text-[10px] font-black flex items-center justify-center border border-acid">
@@ -49,6 +53,7 @@ export const ModeSelector = ({ mode, setMode, modes, setRating }) => {
                 </div>
                 <div className="label-caps text-ink/50 mt-1">{current.title}</div>
                 <p className="font-serif text-sm leading-relaxed mt-2 text-ink/80">"{current.quote}"</p>
+                <p className="text-xs text-ink/60 mt-2 pt-2 border-t border-ink/10">{current.bio}</p>
             </div>
         </section>
     );
