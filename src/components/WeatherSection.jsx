@@ -6,6 +6,7 @@ export const WeatherSection = ({
     loadingWeather,
     location,
     setLocation,
+    confirmedLocation,
     useWeather,
     setUseWeather,
     suggestions,
@@ -28,7 +29,7 @@ export const WeatherSection = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [setShowSuggestions]);
 
-    const handleLocationKeyPress = (e) => {
+    const handleLocationKeyDown = (e) => {
         if (e.key === 'Enter') handleLocationUpdate();
     };
 
@@ -54,8 +55,8 @@ export const WeatherSection = ({
                     >
                         <MapPin className="w-3 h-3" />
                         {weather && !loadingWeather
-                            ? `${weather.temperature}°C · ${location || 'Set location'}`
-                            : loadingWeather ? 'Loading…' : (location || 'Set location')}
+                            ? `${weather.temperature}°C · ${confirmedLocation || 'Set location'}`
+                            : loadingWeather ? 'Loading…' : (confirmedLocation || 'Set location')}
                         {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
                 )}
@@ -70,7 +71,7 @@ export const WeatherSection = ({
                                 type="text"
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
-                                onKeyPress={handleLocationKeyPress}
+                                onKeyDown={handleLocationKeyDown}
                                 placeholder="Enter city or zip code…"
                                 autoComplete="off"
                                 className="w-full border-2 border-ink px-3 py-2.5 text-sm font-medium bg-white focus:outline-none focus:ring-4 focus:ring-acid"

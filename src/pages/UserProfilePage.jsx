@@ -314,7 +314,7 @@ export default function UserProfilePage() {
                                         type="text"
                                         value={newPref}
                                         onChange={(e) => setNewPref(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && (profileHook.addStylePreference(newPref), setNewPref(''))}
+                                        onKeyDown={(e) => e.key === 'Enter' && (profileHook.addStylePreference(newPref), setNewPref(''))}
                                         placeholder="e.g., minimalist"
                                         className={`flex-1 ${inputClasses}`}
                                     />
@@ -348,7 +348,7 @@ export default function UserProfilePage() {
                                         type="text"
                                         value={newColor}
                                         onChange={(e) => setNewColor(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && (profileHook.addFavouriteColor(newColor), setNewColor(''))}
+                                        onKeyDown={(e) => e.key === 'Enter' && (profileHook.addFavouriteColor(newColor), setNewColor(''))}
                                         placeholder="e.g., navy blue"
                                         className={`flex-1 ${inputClasses}`}
                                     />
@@ -382,7 +382,7 @@ export default function UserProfilePage() {
                                         type="text"
                                         value={newBrand}
                                         onChange={(e) => setNewBrand(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && (profileHook.addFavouriteBrand(newBrand), setNewBrand(''))}
+                                        onKeyDown={(e) => e.key === 'Enter' && (profileHook.addFavouriteBrand(newBrand), setNewBrand(''))}
                                         placeholder="e.g., Zara"
                                         className={`flex-1 ${inputClasses}`}
                                     />

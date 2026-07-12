@@ -5,6 +5,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  */
 export const useWeather = () => {
     const [location, setLocation] = useState('');
+    // The last location a weather fetch actually resolved (shown in the chip);
+    // `location` doubles as the input draft while the user types.
+    const [confirmedLocation, setConfirmedLocation] = useState('');
     const [weather, setWeather] = useState(null);
     const [loadingWeather, setLoadingWeather] = useState(false);
     const [useWeather, setUseWeather] = useState(true);
@@ -18,6 +21,7 @@ export const useWeather = () => {
     const setLocationProgrammatic = (value) => {
         skipSuggestionsRef.current = true;
         setLocation(value);
+        setConfirmedLocation(value);
     };
 
     // Typed input goes through here (exported as setLocation) so a user edit
@@ -180,6 +184,7 @@ export const useWeather = () => {
     return {
         location,
         setLocation: setLocationTyped,
+        confirmedLocation,
         weather,
         loadingWeather,
         useWeather,
