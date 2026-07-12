@@ -39,51 +39,35 @@ export default function App() {
   const modes = {
     professional: {
       label: 'Alexandra Ashford',
+      title: 'The Curator',
+      quote: 'I read an outfit the way I read a painting — context, proportion, intent.',
       persona: 'Understated Sophistication',
       bio: 'Museum curator & style theorist analyzing cultural context',
-      image: AlexandraAshfordImage,
-      color: 'slate',
-      gradient: 'from-slate-700 via-slate-800 to-gray-900',
-      glow: 'glow-muted',
-      bgGradient: 'from-slate-800/40 to-slate-700/20',
-      borderColor: 'border-slate-600',
-      dotColor: 'bg-slate-800'
+      image: AlexandraAshfordImage
     },
     balanced: {
       label: 'Margot Leclerc',
+      title: 'The Consultant',
+      quote: 'True elegance is harmony — we simply turn up its volume.',
       persona: 'Thoughtful, Elegant, and Refined',
       bio: 'Parisian consultant elevating style with warmth',
-      image: MargotLeclercImage,
-      color: 'orange',
-      gradient: 'from-slate-900 via-orange-950 to-slate-900',
-      glow: 'glow-sage',
-      bgGradient: 'from-orange-800/30 to-emerald-800/15',
-      borderColor: 'border-orange-600',
-      dotColor: 'bg-orange-900'
+      image: MargotLeclercImage
     },
     hype: {
       label: 'Kai Chen',
+      title: 'The Journalist',
+      quote: "Bold choices are the whole story. I'm just here to write it down.",
       persona: 'Authenticity, Energy and Enthusiam',
       bio: 'Fashion journalist celebrating boldness & expression',
-      image: KaiChenImage,
-      color: 'green',
-      gradient: 'from-teal-800 via-emerald-800 to-green-900',
-      glow: 'glow-gold',
-      bgGradient: 'from-teal-800/25 to-green-800/15',
-      borderColor: 'border-green-900',
-      dotColor: 'bg-green-900'
+      image: KaiChenImage
     },
     roast: {
       label: 'Marcus Stone',
+      title: 'The Critic',
+      quote: "I don't roast people. I roast decisions. Yours, specifically.",
       persona: 'Truthful and Straightforward',
       bio: 'Fashion critic with witty, sharp observations',
-      image: MarcusStoneImage,
-      color: 'indigo',
-      gradient: 'from-violet-950 via-indigo-900 to-blue-950',
-      glow: 'glow-muted',
-      bgGradient: 'from-indigo-900/35 to-indigo-800/18',
-      borderColor: 'border-blue-500',
-      dotColor: 'bg-indigo-900'
+      image: MarcusStoneImage
     }
   };
 

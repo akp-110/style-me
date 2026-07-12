@@ -1,5 +1,4 @@
 import React from 'react';
-import { Info } from 'lucide-react';
 import Header from '../components/Header';
 import { WeatherSection } from '../components/WeatherSection';
 import { ModeSelector } from '../components/ModeSelector';
@@ -30,76 +29,32 @@ export const HomePage = ({
     showHelpModal,
     setShowHelpModal
 }) => {
+    const showStickyRate = photo && !rating;
+
     return (
-        <div className="min-h-screen animated-gradient relative overflow-hidden font-sans text-center">
-            {/* Header with Auth */}
-            <Header />
-
-            {/* Floating background particles */}
-            <div className="particle particle-1 floating"></div>
-            <div className="particle particle-2 floating-delayed"></div>
-            <div className="particle particle-3 floating-slow"></div>
-            <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-gray-400/20 rounded-full blur-3xl floating"></div>
-            <div className="absolute bottom-1/4 left-1/4 w-32 h-32 bg-slate-400/20 rounded-full blur-3xl floating-delayed"></div>
-
-            {/* Overlay for better contrast */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10"></div>
-
-            {/* Main Content Wrapper */}
-            <div className="relative z-10 py-10 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-start min-h-screen">
-                <div className="max-w-6xl mx-auto w-full">
-                    {/* Header */}
-                    <div className="text-center mb-14 animate-slide-down">
-                        <div className="relative">
-                            <h1 className="text-7xl sm:text-9xl lg:text-[12rem] font-black mb-6 relative leading-tight tracking-tight">
-                                <span className="bg-gradient-to-r from-slate-200 via-white to-slate-200 bg-clip-text text-transparent block drop-shadow-2xl">
-                                    <span className="text-amber-50">Style /</span>
-                                    <span className="text-orange-700">Me</span>
-                                </span>
-                            </h1>
-                            {/* Help Button */}
-                            <button
-                                onClick={() => setShowHelpModal(true)}
-                                className="absolute top-4 right-4 sm:right-8 lg:right-16 p-3 bg-slate-800/60 hover:bg-slate-700/80 text-white rounded-full transition-all hover:scale-110 hover:shadow-xl border border-slate-600/50 group"
-                                title="How to use Style/Me"
-                            >
-                                <Info className="w-6 h-6 group-hover:text-orange-400 transition-colors" />
-                            </button>
-
-                            {/* Usage Indicator */}
-                            {subscriptionHook && (
-                                <div className="absolute top-4 left-4 sm:left-8 lg:left-16">
-                                    <UsageIndicator
-                                        compact
-                                        onClick={() => setShowUpgradeModal(true)}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                        <p className="text-white/85 text-base sm:text-lg lg:text-2xl max-w-3xl mx-auto font-light tracking-wide mb-8 leading-relaxed">
-                            AI-powered fashion feedback {weatherHook.useWeather && 'with real-time weather context'}, style preferences, and calendar integration.
-                        </p>
+        <div className="min-h-screen bg-paper text-ink font-sans">
+            {/* Top bar */}
+            <header className="sticky top-0 z-40 border-b-[3px] border-ink bg-paper">
+                <div className="max-w-3xl mx-auto flex items-center justify-between gap-2 px-4 py-2.5">
+                    <span className="font-black tracking-tight text-lg">STYLE/ME</span>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowHelpModal(true)}
+                            className="chip-hard btn-press shadow-hard-sm"
+                            title="How to use Style/Me"
+                        >
+                            ?
+                        </button>
+                        {subscriptionHook && (
+                            <UsageIndicator compact onClick={() => setShowUpgradeModal(true)} />
+                        )}
+                        <Header />
                     </div>
+                </div>
+            </header>
 
-                    {/* Weather Section */}
-                    <WeatherSection {...weatherHook} />
-
-                    {/* Mode Selector */}
-                    <ModeSelector mode={mode} setMode={setMode} modes={modes} setRating={setRating} />
-
-                    {/* Upload Section */}
-                    <PhotoUpload
-                        photo={photo}
-                        photoPreview={photoPreview}
-                        handleFileUpload={handleFileUpload}
-                        clearPhoto={clearPhoto}
-                        getRating={getRating}
-                        loading={loading}
-                        loadingMessage={loadingMessage}
-                        currentMode={currentMode}
-                    />
-
-                    {/* Rating Display */}
+            <main className={`max-w-3xl mx-auto px-4 ${showStickyRate ? 'pb-28' : 'pb-10'}`}>
+                {rating ? (
                     <RatingDisplay
                         rating={rating}
                         socialSummary={socialSummary}
@@ -112,21 +67,62 @@ export const HomePage = ({
                             favoriteBrands: profileHook.profile.favouriteBrands,
                             countryCode: profileHook.profile.countryCode
                         }}
+                        onBack={() => setRating(null)}
                     />
+                ) : (
+                    <>
+                        {/* Hero */}
+                        <div className="pt-8 pb-6 text-left animate-fade-in">
+                            <h1 className="font-black uppercase leading-[0.9] tracking-tight text-5xl sm:text-7xl">
+                                Fit check<span className="text-acid-dim">.</span>
+                            </h1>
+                            <p className="mt-3 text-sm sm:text-base text-ink/60 max-w-md">
+                                Four advisors. One photo. Zero mercy.
+                                {weatherHook.useWeather && ' Weather included.'}
+                            </p>
+                        </div>
 
-                    {/* Footer */}
-                    <div className="text-center mt-20 mb-10 animate-fade-in">
-                        <p className="text-slate-300 text-sm sm:text-base mb-4 font-light tracking-wide drop-shadow-2xl">
-                            Powered by <span className="font-semibold text-white">Claude Haiku 3.5</span> × Anthropic API {weatherHook.useWeather && '× OpenWeather'}
-                        </p>
-                        <p className="text-slate-400 text-xs sm:text-sm tracking-widest uppercase font-light">
-                            #StyleMe
-                        </p>
+                        <WeatherSection {...weatherHook} />
+
+                        <ModeSelector mode={mode} setMode={setMode} modes={modes} setRating={setRating} />
+
+                        <PhotoUpload
+                            photoPreview={photoPreview}
+                            handleFileUpload={handleFileUpload}
+                            clearPhoto={clearPhoto}
+                        />
+                    </>
+                )}
+
+                {/* Footer */}
+                {!rating && (
+                    <div className="text-center mt-16 space-y-1">
+                        <p className="label-caps text-ink/40">Powered by Claude Haiku 4.5 × Anthropic</p>
+                        <p className="label-caps text-ink/30">#StyleMe</p>
                     </div>
-                </div>
-            </div>
+                )}
+            </main>
 
-            {/* Help Modal */}
+            {/* Sticky rate CTA */}
+            {showStickyRate && (
+                <div className="fixed bottom-0 inset-x-0 z-40 border-t-[3px] border-ink bg-paper p-3">
+                    <button
+                        onClick={getRating}
+                        disabled={loading}
+                        className="w-full max-w-xl mx-auto flex items-center justify-center gap-2 bg-acid border-[3px] border-ink shadow-hard btn-press font-black uppercase tracking-wide text-base py-3.5"
+                    >
+                        {loading ? (
+                            <>
+                                <span className="inline-block w-4 h-4 border-[3px] border-ink border-t-transparent rounded-full animate-spin" />
+                                {loadingMessage}
+                            </>
+                        ) : (
+                            'Rate me →'
+                        )}
+                    </button>
+                </div>
+            )}
+
             <HelpModal showHelpModal={showHelpModal} setShowHelpModal={setShowHelpModal} />
         </div>
     );
