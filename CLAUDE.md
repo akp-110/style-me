@@ -17,7 +17,7 @@ npm run lint      # ESLint
 npm run preview   # Preview production build
 ```
 
-There is no test suite.
+Tests: `npm test` runs vitest (pure-function tests only, e.g. `src/utils/parseRating.test.js`). UI verification is manual browser checks.
 
 Local dev requires **two processes**: Vite serves the frontend and proxies `/api/*` to the Express server on port 3001 (see `vite.config.js`). API calls fail silently-ish (fetch errors) if `npm start` isn't running.
 
@@ -29,7 +29,7 @@ Environment variables go in `.env` (see `.env.example`). Server-side: `ANTHROPIC
 
 Handlers in `api/` are written as Vercel-style serverless functions (`export default async function handler(req, res)`). `server.js` is a thin Express wrapper that mounts them for local development; in production they deploy directly as Vercel serverless functions. When adding an endpoint, write it serverless-style in `api/`, then register the route in `server.js`. Each handler calls `setCorsHeaders()` from `api/middleware/cors.js` and handles its own OPTIONS/method checks.
 
-- `api/rate-outfit.js` — main rating: sends base64 image + persona prompt to the Anthropic Messages API (raw `fetch`, no SDK; model `claude-3-5-haiku-20241022`). Per-mode `max_tokens` limits live in `api/config/constants.js`.
+- `api/rate-outfit.js` — main rating: sends base64 image + persona prompt to the Anthropic Messages API (raw `fetch`, no SDK; model `claude-haiku-4-5`). Per-mode `max_tokens` limits live in `api/config/constants.js`.
 - `api/analyze-outfit.js` — structured JSON analysis (colors, style tags, gaps).
 - `api/weather.js` / `api/weather-suggestions.js` — OpenWeatherMap proxy and city autocomplete.
 - `api/search-products.js` — RapidAPI product search with mock-data fallback.
