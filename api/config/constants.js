@@ -14,3 +14,12 @@ export const MODE_TOKEN_LIMITS = {
 };
 
 export const DEFAULT_TOKEN_LIMIT = 600;  // Reduced from 800
+
+// Server-enforced usage limits, per action type ('rating' and 'analysis'
+// are counted separately, each at this cap). Tune here — one-line change.
+export const RATE_LIMITS = {
+    guest: { limit: 5, window: 'rolling7d' },
+    free: { limit: 20, window: 'month' },
+    style_plus: { limit: 100, window: 'month' },
+    style_pro: { limit: Infinity, window: 'month' }
+};
