@@ -39,6 +39,8 @@ export default function App() {
   const modes = {
     professional: {
       label: 'Alexandra Ashford',
+      title: 'The Curator',
+      quote: 'I read an outfit the way I read a painting — context, proportion, intent.',
       persona: 'Understated Sophistication',
       bio: 'Museum curator & style theorist analyzing cultural context',
       image: AlexandraAshfordImage,
@@ -51,6 +53,8 @@ export default function App() {
     },
     balanced: {
       label: 'Margot Leclerc',
+      title: 'The Consultant',
+      quote: 'True elegance is harmony — we simply turn up its volume.',
       persona: 'Thoughtful, Elegant, and Refined',
       bio: 'Parisian consultant elevating style with warmth',
       image: MargotLeclercImage,
@@ -63,6 +67,8 @@ export default function App() {
     },
     hype: {
       label: 'Kai Chen',
+      title: 'The Journalist',
+      quote: "Bold choices are the whole story. I'm just here to write it down.",
       persona: 'Authenticity, Energy and Enthusiam',
       bio: 'Fashion journalist celebrating boldness & expression',
       image: KaiChenImage,
@@ -75,6 +81,8 @@ export default function App() {
     },
     roast: {
       label: 'Marcus Stone',
+      title: 'The Critic',
+      quote: "I don't roast people. I roast decisions. Yours, specifically.",
       persona: 'Truthful and Straightforward',
       bio: 'Fashion critic with witty, sharp observations',
       image: MarcusStoneImage,
