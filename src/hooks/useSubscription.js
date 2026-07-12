@@ -4,10 +4,13 @@ import { useAuth } from '../context/AuthContext';
 
 // Tier limits configuration
 const TIER_LIMITS = {
-    free: 3,
+    free: 5,
     style_plus: 50,
     style_pro: Infinity
 };
+
+// Ratings a signed-out guest gets per rolling 7-day window
+const GUEST_LIMIT = 5;
 
 // Feature access by tier
 const FEATURE_ACCESS = {
@@ -188,16 +191,26 @@ export function useGuestUsage() {
         const now = new Date();
         const daysSince = (now - lastRating) / (1000 * 60 * 60 * 24);
 
+        // A full week since the last rating resets the window.
         if (daysSince >= 7) {
+            return { canRate: true, daysLeft: 0 };
+        }
+        // Within the window, allow up to GUEST_LIMIT ratings.
+        if ((data.count || 0) < GUEST_LIMIT) {
             return { canRate: true, daysLeft: 0 };
         }
         return { canRate: false, daysLeft: Math.ceil(7 - daysSince) };
     };
 
     const logGuestRating = () => {
+        const data = getGuestData();
+        const now = new Date();
+        const lastRating = data.lastRating ? new Date(data.lastRating) : null;
+        const withinWindow = lastRating && (now - lastRating) / (1000 * 60 * 60 * 24) < 7;
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            lastRating: new Date().toISOString(),
-            count: (getGuestData().count || 0) + 1
+            lastRating: now.toISOString(),
+            // Reset the count when a new weekly window starts.
+            count: withinWindow ? (data.count || 0) + 1 : 1
         }));
     };
 

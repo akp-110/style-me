@@ -394,9 +394,15 @@ Be specific and helpful!`;
 
         const ratingText = textBlock.text;
 
-        // Extract Social Media Summary
+        // Extract Social Media Summary, stripping any markdown emphasis
+        // (the model often wraps it in *italics* or **bold**)
         const summaryMatch = ratingText.match(/\*\*Social Media Summary:\*\*\s*\n*(.+?)(?=\n\n|\*\*|$)/s);
-        const summary = summaryMatch ? summaryMatch[1].trim() : "Check out my outfit rating on Style/Me!";
+        const summary = summaryMatch
+            ? summaryMatch[1]
+                .replace(/[*_]/g, '')          // strip markdown emphasis
+                .replace(/\s*—\s*/g, ' — ')    // space em-dashes so words don't break mid-token
+                .trim()
+            : "Check out my outfit rating on Style/Me!";
         setSocialSummary(summary);
 
         setRating(ratingText);

@@ -7,7 +7,7 @@ const PLANS = [
         name: 'Free',
         price: '£0',
         period: 'forever',
-        ratings: '3/month',
+        ratings: '5/month',
         description: 'Try out the basics',
         features: [
             { name: 'AI outfit ratings', included: true },
