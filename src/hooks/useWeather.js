@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Custom hook for managing weather data and location
@@ -11,6 +11,21 @@ export const useWeather = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+    // Set when `location` changes programmatically (fetch success, suggestion
+    // select) so the debounced autocomplete effect doesn't reopen the dropdown.
+    const skipSuggestionsRef = useRef(false);
+
+    const setLocationProgrammatic = (value) => {
+        skipSuggestionsRef.current = true;
+        setLocation(value);
+    };
+
+    // Typed input goes through here (exported as setLocation) so a user edit
+    // always re-enables autocomplete.
+    const setLocationTyped = (value) => {
+        skipSuggestionsRef.current = false;
+        setLocation(value);
+    };
 
     const getMockWeather = () => ({
         temperature: 22,
@@ -40,17 +55,17 @@ export const useWeather = () => {
                     windSpeed: Math.round(data.wind.speed),
                     icon: data.weather[0].icon
                 });
-                setLocation(`${data.name}, ${data.sys.country}`);
+                setLocationProgrammatic(`${data.name}, ${data.sys.country}`);
             } else {
                 // If proxy returns error (missing key or upstream error), fall back to mock
                 console.warn('Weather proxy responded with non-OK status, using mock data');
                 setWeather(getMockWeather());
-                setLocation('New York, NY');
+                setLocationProgrammatic('New York, NY');
             }
         } catch (error) {
             console.error('Weather fetch error:', error);
             setWeather(getMockWeather());
-            setLocation('New York, NY');
+            setLocationProgrammatic('New York, NY');
         } finally {
             setLoadingWeather(false);
         }
@@ -66,7 +81,7 @@ export const useWeather = () => {
                 },
                 () => {
                     console.log('Location access denied, using default location');
-                    setLocation('New York, NY');
+                    setLocationProgrammatic('New York, NY');
                     setWeather(getMockWeather());
                 }
             );
@@ -89,7 +104,7 @@ export const useWeather = () => {
                     windSpeed: Math.round(data.wind.speed),
                     icon: data.weather[0].icon
                 });
-                setLocation(`${data.name}, ${data.sys.country}`);
+                setLocationProgrammatic(`${data.name}, ${data.sys.country}`);
             } else {
                 const err = await response.json().catch(() => ({}));
                 alert(err.error || 'Location not found. Please try a different city or zip code.');
@@ -128,8 +143,15 @@ export const useWeather = () => {
         }
     }, []);
 
-    // Debounced location search
+    // Debounced location search (skipped when location was set programmatically)
     useEffect(() => {
+        if (skipSuggestionsRef.current) {
+            skipSuggestionsRef.current = false;
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
         const timer = setTimeout(() => {
             if (location.trim()) {
                 fetchSuggestions(location);
@@ -150,14 +172,14 @@ export const useWeather = () => {
     };
 
     const handleSuggestionSelect = (suggestion) => {
-        setLocation(suggestion.displayName);
+        setLocationProgrammatic(suggestion.displayName);
         setShowSuggestions(false);
         fetchWeatherByLocation(suggestion.displayName);
     };
 
     return {
         location,
-        setLocation,
+        setLocation: setLocationTyped,
         weather,
         loadingWeather,
         useWeather,
