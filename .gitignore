@@ -35,3 +35,6 @@ build/
 
 # Brainstorming session files
 .superpowers/
+
+# Claude Code session tooling (worktrees, local settings)
+.claude/
