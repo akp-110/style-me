@@ -13,6 +13,7 @@ import Header from './components/Header';
 import LoginPage from './pages/LoginPage';
 import UserProfilePage from './pages/UserProfilePage';
 import HomePage from './pages/HomePage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import AlexandraAshfordImage from './assets/Alexandra_Ashford.png';
 import MargotLeclercImage from './assets/Margot_Leclerc.jpg';
 import KaiChenImage from './assets/Kai_Chen.jpg';
@@ -490,6 +491,7 @@ Be specific and helpful!`;
         />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/profile" element={<UserProfilePage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Routes>
     </>
   );
