@@ -38,3 +38,4 @@ build/
 
 # Claude Code session tooling (worktrees, local settings)
 .claude/
+.env*
