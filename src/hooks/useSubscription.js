@@ -200,14 +200,16 @@ export function useGuestUsage() {
         }
     };
 
-    // Ratings logged in the CURRENT month (0 if the stored month is stale).
-    const currentMonthCount = () => {
+    // Ratings and analyses logged in the CURRENT month, counted separately
+    // (0 if the stored month is stale). Mirrors the server's per-action pools.
+    const currentCounts = () => {
         const data = getGuestData();
-        return data.month === monthKey() ? (data.count || 0) : 0;
+        if (data.month !== monthKey()) return { count: 0, analysisCount: 0 };
+        return { count: data.count || 0, analysisCount: data.analysisCount || 0 };
     };
 
-    // Held in state so the header chip re-renders when a guest logs a rating.
-    const [count, setCount] = useState(currentMonthCount);
+    // Held in state so the chips re-render when a guest logs usage.
+    const [counts, setCounts] = useState(currentCounts);
 
     const daysUntilNextMonth = () => {
         const now = new Date();
@@ -215,23 +217,30 @@ export function useGuestUsage() {
         return Math.ceil((next - now) / (1000 * 60 * 60 * 24));
     };
 
+    // Increment one action's counter; a new calendar month zeroes both first.
+    const bump = (field) => {
+        const base = currentCounts();
+        const next = { ...base, [field]: base[field] + 1 };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ month: monthKey(), ...next }));
+        setCounts(next);
+    };
+
     const checkGuestCanRate = () => {
-        const c = currentMonthCount();
-        if (c < GUEST_LIMIT) return { canRate: true, daysLeft: 0 };
+        if (currentCounts().count < GUEST_LIMIT) return { canRate: true, daysLeft: 0 };
         return { canRate: false, daysLeft: daysUntilNextMonth() };
     };
 
-    const logGuestRating = () => {
-        const data = getGuestData();
-        const current = monthKey();
-        const sameMonth = data.month === current;
-        // Reset the count when a new calendar month starts.
-        const newCount = sameMonth ? (data.count || 0) + 1 : 1;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ month: current, count: newCount }));
-        setCount(newCount);
+    const logGuestRating = () => bump('count');
+    const logGuestAnalysis = () => bump('analysisCount');
+
+    return {
+        checkGuestCanRate,
+        logGuestRating,
+        logGuestAnalysis,
+        count: counts.count,
+        remaining: Math.max(0, GUEST_LIMIT - counts.count),
+        analysisCount: counts.analysisCount,
+        analysisRemaining: Math.max(0, GUEST_LIMIT - counts.analysisCount),
+        limit: GUEST_LIMIT,
     };
-
-    const remaining = Math.max(0, GUEST_LIMIT - count);
-
-    return { checkGuestCanRate, logGuestRating, count, remaining, limit: GUEST_LIMIT };
 }

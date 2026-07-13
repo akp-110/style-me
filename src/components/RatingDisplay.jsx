@@ -105,7 +105,9 @@ export const RatingDisplay = ({ rating, socialSummary, subscription, currentMode
         // The API records the analysis (single writer); bump the local counter
         // so the on-screen chip reflects it without a refetch. Only on success —
         // a failed or rate-limited analyze returns null and consumes nothing.
-        if (result && user) subscription?.bumpAnalysisCount?.();
+        // Works for guests too: subscription.bumpAnalysisCount is the guest
+        // localStorage tally when signed out.
+        if (result) subscription?.bumpAnalysisCount?.();
     };
 
     const handleSearchProduct = (query) => {
@@ -246,7 +248,7 @@ export const RatingDisplay = ({ rating, socialSummary, subscription, currentMode
                         {analysisLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                         {analysisLoading ? 'Analyzing…' : 'Analyze colors & style'}
                     </button>
-                    {showAnalysis && user && subscription && (
+                    {showAnalysis && subscription && (
                         <span
                             className="chip-hard bg-stone"
                             title={subscription.tier === 'style_pro'

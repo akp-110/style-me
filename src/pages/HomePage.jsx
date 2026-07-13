@@ -10,8 +10,7 @@ import { UsageIndicator } from '../components/UsageIndicator';
 export const HomePage = ({
     weatherHook,
     profileHook,
-    subscriptionHook,
-    usageForChip,
+    usageView,
     setShowUpgradeModal,
     mode,
     setMode,
@@ -46,8 +45,8 @@ export const HomePage = ({
                         >
                             ?
                         </button>
-                        {usageForChip && (
-                            <UsageIndicator subscription={usageForChip} compact onClick={() => setShowUpgradeModal(true)} />
+                        {usageView && (
+                            <UsageIndicator subscription={usageView} compact onClick={() => setShowUpgradeModal(true)} />
                         )}
                         <Header />
                     </div>
@@ -59,7 +58,7 @@ export const HomePage = ({
                     <RatingDisplay
                         rating={rating}
                         socialSummary={socialSummary}
-                        subscription={subscriptionHook}
+                        subscription={usageView}
                         currentMode={currentMode}
                         mode={mode}
                         useWeather={weatherHook.useWeather}

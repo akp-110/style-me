@@ -38,15 +38,19 @@ export default function App() {
   const guestUsage = useGuestUsage();
   const { user } = useAuth();
 
-  // What the header usage chip renders from: DB-backed subscription for a
-  // logged-in user, or the localStorage guest allowance when signed out.
-  const usageForChip = user
+  // Unified usage view for the rating chip AND the analysis counter:
+  // DB-backed subscription for a logged-in user, or the localStorage guest
+  // allowance (ratings + analyses tracked separately) when signed out.
+  const usageView = user
     ? subscriptionHook
     : {
         tier: 'free',
-        remaining: guestUsage.remaining,
         loading: false,
+        remaining: guestUsage.remaining,
         getRemainingText: () => `${guestUsage.remaining}/${guestUsage.limit}`,
+        analysisRemaining: guestUsage.analysisRemaining,
+        getAnalysisText: () => `${guestUsage.analysisRemaining}/${guestUsage.limit}`,
+        bumpAnalysisCount: guestUsage.logGuestAnalysis,
       };
 
   const modes = {
@@ -480,8 +484,7 @@ Be specific and helpful!`;
         <Route path="/" element={<HomePage
           weatherHook={weatherHook}
           profileHook={profileHook}
-          subscriptionHook={subscriptionHook}
-          usageForChip={usageForChip}
+          usageView={usageView}
           showUpgradeModal={showUpgradeModal}
           setShowUpgradeModal={setShowUpgradeModal}
           mode={mode}
