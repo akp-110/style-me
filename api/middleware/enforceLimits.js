@@ -61,9 +61,12 @@ export async function enforceLimits(req, actionType) {
                 .eq('user_id', identity.id)
                 .eq('action_type', actionType)
                 .gte('created_at', monthStart(now).toISOString());
-            if (error) throw error;
+            // HEAD responses carry no body, so supabase-js can swallow errors
+            // (e.g. missing table) as { error: null, count: null }. Treat a
+            // null count as a failed check so fail-open stays loud.
+            if (error || count === null) throw error || new Error('usage_logs count returned null');
 
-            const verdict = decide(identity.tier, count ?? 0);
+            const verdict = decide(identity.tier, count);
             if (verdict.allowed) return { allowed: true, identity };
             return {
                 allowed: false, identity,
@@ -80,9 +83,10 @@ export async function enforceLimits(req, actionType) {
             .eq('ip_hash', identity.ipHash)
             .eq('action_type', actionType)
             .gte('created_at', windowStartIso);
-        if (error) throw error;
+        // Same null-count guard as the user path (HEAD swallows errors).
+        if (error || count === null) throw error || new Error('guest_usage count returned null');
 
-        const verdict = decide('guest', count ?? 0);
+        const verdict = decide('guest', count);
         if (verdict.allowed) return { allowed: true, identity };
 
         // Over limit: resetAt = oldest in-window entry + 7 days (rare path,
