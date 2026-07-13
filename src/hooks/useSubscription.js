@@ -76,10 +76,11 @@ export function useSubscription() {
                 }
             }
 
-            // Fetch monthly usage count
-            const startOfMonth = new Date();
-            startOfMonth.setDate(1);
-            startOfMonth.setHours(0, 0, 0, 0);
+            // Fetch monthly usage count. UTC month start, matching the
+            // server's enforcement window (api/lib/limitPolicy.js monthStart)
+            // so the chip never disagrees with the server near boundaries.
+            const now = new Date();
+            const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
             const { count, error: usageError } = await supabase
                 .from('usage_logs')
