@@ -2,13 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Agentic delivery framework
-
-Read and follow `AGENTS.md` for the model-agnostic orchestration framework,
-delivery modes, routing rules, task contracts, safety boundaries, quality gates,
-and technical-debt policy. This file adds Claude-specific repository context;
-`AGENTS.md` is the portable operating model shared with other coding agents.
-
 ## Project
 
 "Style/Me" — an AI outfit-rating web app. Users upload a photo, pick one of four AI advisor personas, and get a Claude-generated rating enriched with weather, style-profile, and calendar context. Supabase handles auth, profiles, saved outfits, and subscription tiers.
