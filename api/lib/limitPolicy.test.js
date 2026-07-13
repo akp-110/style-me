@@ -23,8 +23,8 @@ describe('window math', () => {
 
 describe('decide', () => {
     it.each([
-        ['guest', 4, true],
-        ['guest', 5, false],
+        ['guest', 19, true],
+        ['guest', 20, false],
         ['free', 19, true],
         ['free', 20, false],
         ['style_plus', 99, true],
@@ -40,7 +40,7 @@ describe('decide', () => {
     });
 
     it('returns the numeric limit for the tier', () => {
-        expect(decide('guest', 0).limit).toBe(5);
+        expect(decide('guest', 0).limit).toBe(20);
         expect(decide('free', 0).limit).toBe(20);
     });
 });

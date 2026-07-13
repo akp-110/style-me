@@ -2,13 +2,12 @@
 /* global process */
 import { createClient } from '@supabase/supabase-js';
 import {
-    monthStart, nextMonthStart, rollingStart,
+    monthStart, nextMonthStart,
     decide, hashIp, clientIp
 } from '../lib/limitPolicy.js';
 import { RATE_LIMITS } from '../config/constants.js';
 
 const IP_SALT = process.env.GUEST_IP_SALT || 'style-me-guest-v1';
-const ROLLING_DAYS = 7;
 
 let adminClient = null;
 let warnedMissingEnv = false;
@@ -75,37 +74,23 @@ export async function enforceLimits(req, actionType) {
             };
         }
 
-        // Guest path
-        const windowStartIso = rollingStart(now, ROLLING_DAYS).toISOString();
+        // Guest path — same monthly window as users, keyed by hashed IP.
         const { count, error } = await supabase
             .from('guest_usage')
             .select('*', { count: 'exact', head: true })
             .eq('ip_hash', identity.ipHash)
             .eq('action_type', actionType)
-            .gte('created_at', windowStartIso);
+            .gte('created_at', monthStart(now).toISOString());
         // Same null-count guard as the user path (HEAD swallows errors).
         if (error || count === null) throw error || new Error('guest_usage count returned null');
 
         const verdict = decide('guest', count);
         if (verdict.allowed) return { allowed: true, identity };
-
-        // Over limit: resetAt = oldest in-window entry + 7 days (rare path,
-        // so the extra query only happens here).
-        const { data: oldest } = await supabase
-            .from('guest_usage')
-            .select('created_at')
-            .eq('ip_hash', identity.ipHash)
-            .eq('action_type', actionType)
-            .gte('created_at', windowStartIso)
-            .order('created_at', { ascending: true })
-            .limit(1)
-            .maybeSingle();
-        const resetAt = new Date(
-            (oldest ? new Date(oldest.created_at).getTime() : now.getTime())
-            + ROLLING_DAYS * 86400000
-        ).toISOString();
-
-        return { allowed: false, identity, limit: verdict.limit, resetAt };
+        return {
+            allowed: false, identity,
+            limit: verdict.limit,
+            resetAt: nextMonthStart(now).toISOString()
+        };
     } catch (err) {
         console.warn('[rate-limit] check failed — allowing request (fail-open):', err.message);
         return OPEN;

@@ -333,7 +333,7 @@ Be specific and helpful!`;
       // Guest user - check weekly limit
       const guestCheck = guestUsage.checkGuestCanRate();
       if (!guestCheck.canRate) {
-        alert(`You've used your 5 free ratings this week. Sign up for more! (${guestCheck.daysLeft} days until reset)`);
+        alert(`You've used your 20 free ratings this month. Sign up for more! (${guestCheck.daysLeft} days until reset)`);
         return;
       }
     }
@@ -388,7 +388,7 @@ Be specific and helpful!`;
           if (user) {
             setShowUpgradeModal(true);
           } else {
-            alert(data.error || "You've used your free ratings this week. Sign up for more!");
+            alert(data.error || "You've used your free ratings this month. Sign up for more!");
           }
           return;
         }

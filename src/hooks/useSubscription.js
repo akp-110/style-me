@@ -9,8 +9,8 @@ const TIER_LIMITS = {
     style_pro: Infinity
 };
 
-// Ratings a signed-out guest gets per rolling 7-day window
-const GUEST_LIMIT = 5;
+// Ratings a signed-out guest gets per calendar month (matches the free tier)
+const GUEST_LIMIT = 20;
 
 // Feature access by tier
 const FEATURE_ACCESS = {
@@ -197,34 +197,31 @@ export function useGuestUsage() {
         }
     };
 
+    // Current UTC calendar month, matching the server's monthly window.
+    const monthKey = (d = new Date()) => `${d.getUTCFullYear()}-${d.getUTCMonth()}`;
+
+    const daysUntilNextMonth = () => {
+        const now = new Date();
+        const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+        return Math.ceil((next - now) / (1000 * 60 * 60 * 24));
+    };
+
     const checkGuestCanRate = () => {
         const data = getGuestData();
-        if (!data.lastRating) return { canRate: true, daysLeft: 0 };
-
-        const lastRating = new Date(data.lastRating);
-        const now = new Date();
-        const daysSince = (now - lastRating) / (1000 * 60 * 60 * 24);
-
-        // A full week since the last rating resets the window.
-        if (daysSince >= 7) {
-            return { canRate: true, daysLeft: 0 };
-        }
-        // Within the window, allow up to GUEST_LIMIT ratings.
-        if ((data.count || 0) < GUEST_LIMIT) {
-            return { canRate: true, daysLeft: 0 };
-        }
-        return { canRate: false, daysLeft: Math.ceil(7 - daysSince) };
+        // A new calendar month resets the allowance.
+        if (data.month !== monthKey()) return { canRate: true, daysLeft: 0 };
+        if ((data.count || 0) < GUEST_LIMIT) return { canRate: true, daysLeft: 0 };
+        return { canRate: false, daysLeft: daysUntilNextMonth() };
     };
 
     const logGuestRating = () => {
         const data = getGuestData();
-        const now = new Date();
-        const lastRating = data.lastRating ? new Date(data.lastRating) : null;
-        const withinWindow = lastRating && (now - lastRating) / (1000 * 60 * 60 * 24) < 7;
+        const current = monthKey();
+        const sameMonth = data.month === current;
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            lastRating: now.toISOString(),
-            // Reset the count when a new weekly window starts.
-            count: withinWindow ? (data.count || 0) + 1 : 1
+            month: current,
+            // Reset the count when a new calendar month starts.
+            count: sameMonth ? (data.count || 0) + 1 : 1
         }));
     };
 
