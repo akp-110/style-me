@@ -46,7 +46,7 @@ export const HomePage = ({
                             ?
                         </button>
                         {subscriptionHook && (
-                            <UsageIndicator compact onClick={() => setShowUpgradeModal(true)} />
+                            <UsageIndicator subscription={subscriptionHook} compact onClick={() => setShowUpgradeModal(true)} />
                         )}
                         <Header />
                     </div>

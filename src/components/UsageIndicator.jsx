@@ -1,12 +1,16 @@
 import React from 'react';
-import { useSubscription } from '../hooks/useSubscription';
 import { Zap, AlertCircle } from 'lucide-react';
 
 /**
  * UsageIndicator - Shows remaining ratings for the month as a bordered chip.
+ *
+ * Reads from the shared subscription instance owned by App (passed in via the
+ * `subscription` prop) — it must NOT call useSubscription() itself. That hook
+ * is plain useState with no context, so a second call would create an isolated
+ * copy that never sees App's bumpUsageCount() after a rating (chip stuck at N/N).
  */
-export function UsageIndicator({ compact = false, onClick }) {
-    const { tier, remaining, loading, getRemainingText } = useSubscription();
+export function UsageIndicator({ subscription, compact = false, onClick }) {
+    const { tier, remaining, loading, getRemainingText } = subscription;
 
     if (loading) return null;
 
