@@ -29,18 +29,22 @@ export function useSubscription() {
     const { user } = useAuth();
     const [tier, setTier] = useState('free');
     const [usageCount, setUsageCount] = useState(0);
+    const [analysisCount, setAnalysisCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [subscription, setSubscription] = useState(null);
 
-    // Calculate usage limit based on tier
+    // Calculate usage limit based on tier. Ratings and analyses each have
+    // their own monthly counter at the same cap (matches server enforcement).
     const usageLimit = TIER_LIMITS[tier] ?? TIER_LIMITS.free;
     const remaining = tier === 'style_pro' ? Infinity : Math.max(0, usageLimit - usageCount);
+    const analysisRemaining = tier === 'style_pro' ? Infinity : Math.max(0, usageLimit - analysisCount);
 
     // Fetch subscription and usage data
     const fetchSubscriptionData = useCallback(async () => {
         if (!user) {
             setTier('free');
             setUsageCount(0);
+            setAnalysisCount(0);
             setSubscription(null);
             setLoading(false);
             return;
@@ -94,6 +98,20 @@ export function useSubscription() {
             } else {
                 setUsageCount(count || 0);
             }
+
+            // Analyses are a separate monthly counter (own action_type).
+            const { count: aCount, error: analysisErr } = await supabase
+                .from('usage_logs')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+                .eq('action_type', 'analysis')
+                .gte('created_at', startOfMonth.toISOString());
+
+            if (analysisErr) {
+                console.error('Error fetching analysis usage:', analysisErr);
+            } else {
+                setAnalysisCount(aCount || 0);
+            }
         } catch (err) {
             console.error('Subscription fetch error:', err);
         } finally {
@@ -101,9 +119,10 @@ export function useSubscription() {
         }
     }, [user]);
 
-    // Usage rows are written by the API (single writer). This just keeps
-    // the header chip in sync without a refetch.
+    // Usage rows are written by the API (single writer). These just keep
+    // the on-screen counters in sync without a refetch.
     const bumpUsageCount = () => setUsageCount(prev => prev + 1);
+    const bumpAnalysisCount = () => setAnalysisCount(prev => prev + 1);
 
     // Check if user can perform a rating
     const canRate = () => {
@@ -129,6 +148,11 @@ export function useSubscription() {
         return `${remaining}/${usageLimit}`;
     };
 
+    const getAnalysisText = () => {
+        if (tier === 'style_pro') return '∞';
+        return `${analysisRemaining}/${usageLimit}`;
+    };
+
     // Fetch on mount and user change
     useEffect(() => {
         fetchSubscriptionData();
@@ -140,6 +164,8 @@ export function useSubscription() {
         usageCount,
         usageLimit,
         remaining,
+        analysisCount,
+        analysisRemaining,
         loading,
         subscription,
 
@@ -147,9 +173,11 @@ export function useSubscription() {
         canRate,
         canUseFeature,
         bumpUsageCount,
+        bumpAnalysisCount,
         refreshSubscription: fetchSubscriptionData,
         getResetDate,
         getRemainingText,
+        getAnalysisText,
 
         // Constants for UI
         TIER_LIMITS,

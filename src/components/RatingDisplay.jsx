@@ -24,7 +24,7 @@ const worksComponents = {
     li: (props) => <li className="text-sm leading-relaxed text-ink/80 flex gap-2"><span aria-hidden="true">✓</span><span {...props} /></li>,
 };
 
-export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWeather, weather, photoPreview, userPreferences = {}, onBack }) => {
+export const RatingDisplay = ({ rating, socialSummary, subscription, currentMode, mode, useWeather, weather, photoPreview, userPreferences = {}, onBack }) => {
     const [isSharing, setIsSharing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
@@ -101,7 +101,11 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
         if (!photoPreview) return;
         setShowAnalysis(true);
         const base64 = photoPreview.split(',')[1];
-        await analyzeOutfit(base64, 'image/jpeg', userPreferences);
+        const result = await analyzeOutfit(base64, 'image/jpeg', userPreferences);
+        // The API records the analysis (single writer); bump the local counter
+        // so the on-screen chip reflects it without a refetch. Only on success —
+        // a failed or rate-limited analyze returns null and consumes nothing.
+        if (result && user) subscription?.bumpAnalysisCount?.();
     };
 
     const handleSearchProduct = (query) => {
@@ -235,13 +239,23 @@ export const RatingDisplay = ({ rating, socialSummary, currentMode, mode, useWea
                 </section>
             )}
 
-            {/* Analyze chip */}
+            {/* Analyze chip + usage counter (counter appears once analysis is used) */}
             {photoPreview && (
-                <div className="mt-4">
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
                     <button onClick={handleAnalyze} disabled={analysisLoading} className="chip-hard btn-press shadow-hard-sm">
                         {analysisLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                         {analysisLoading ? 'Analyzing…' : 'Analyze colors & style'}
                     </button>
+                    {showAnalysis && user && subscription && (
+                        <span
+                            className="chip-hard bg-stone"
+                            title={subscription.tier === 'style_pro'
+                                ? 'Unlimited analyses'
+                                : `${subscription.analysisRemaining} analyses left this month`}
+                        >
+                            {subscription.getAnalysisText()} analyses
+                        </span>
+                    )}
                 </div>
             )}
 

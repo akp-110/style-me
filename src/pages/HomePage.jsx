@@ -58,6 +58,7 @@ export const HomePage = ({
                     <RatingDisplay
                         rating={rating}
                         socialSummary={socialSummary}
+                        subscription={subscriptionHook}
                         currentMode={currentMode}
                         mode={mode}
                         useWeather={weatherHook.useWeather}
