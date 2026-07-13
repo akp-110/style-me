@@ -189,6 +189,9 @@ export function useSubscription() {
 export function useGuestUsage() {
     const STORAGE_KEY = 'stylesync_guest';
 
+    // Current UTC calendar month, matching the server's monthly window.
+    const monthKey = (d = new Date()) => `${d.getUTCFullYear()}-${d.getUTCMonth()}`;
+
     const getGuestData = () => {
         try {
             return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -197,8 +200,14 @@ export function useGuestUsage() {
         }
     };
 
-    // Current UTC calendar month, matching the server's monthly window.
-    const monthKey = (d = new Date()) => `${d.getUTCFullYear()}-${d.getUTCMonth()}`;
+    // Ratings logged in the CURRENT month (0 if the stored month is stale).
+    const currentMonthCount = () => {
+        const data = getGuestData();
+        return data.month === monthKey() ? (data.count || 0) : 0;
+    };
+
+    // Held in state so the header chip re-renders when a guest logs a rating.
+    const [count, setCount] = useState(currentMonthCount);
 
     const daysUntilNextMonth = () => {
         const now = new Date();
@@ -207,10 +216,8 @@ export function useGuestUsage() {
     };
 
     const checkGuestCanRate = () => {
-        const data = getGuestData();
-        // A new calendar month resets the allowance.
-        if (data.month !== monthKey()) return { canRate: true, daysLeft: 0 };
-        if ((data.count || 0) < GUEST_LIMIT) return { canRate: true, daysLeft: 0 };
+        const c = currentMonthCount();
+        if (c < GUEST_LIMIT) return { canRate: true, daysLeft: 0 };
         return { canRate: false, daysLeft: daysUntilNextMonth() };
     };
 
@@ -218,12 +225,13 @@ export function useGuestUsage() {
         const data = getGuestData();
         const current = monthKey();
         const sameMonth = data.month === current;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            month: current,
-            // Reset the count when a new calendar month starts.
-            count: sameMonth ? (data.count || 0) + 1 : 1
-        }));
+        // Reset the count when a new calendar month starts.
+        const newCount = sameMonth ? (data.count || 0) + 1 : 1;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ month: current, count: newCount }));
+        setCount(newCount);
     };
 
-    return { checkGuestCanRate, logGuestRating };
+    const remaining = Math.max(0, GUEST_LIMIT - count);
+
+    return { checkGuestCanRate, logGuestRating, count, remaining, limit: GUEST_LIMIT };
 }

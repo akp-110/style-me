@@ -11,6 +11,7 @@ export const HomePage = ({
     weatherHook,
     profileHook,
     subscriptionHook,
+    usageForChip,
     setShowUpgradeModal,
     mode,
     setMode,
@@ -45,8 +46,8 @@ export const HomePage = ({
                         >
                             ?
                         </button>
-                        {subscriptionHook && (
-                            <UsageIndicator subscription={subscriptionHook} compact onClick={() => setShowUpgradeModal(true)} />
+                        {usageForChip && (
+                            <UsageIndicator subscription={usageForChip} compact onClick={() => setShowUpgradeModal(true)} />
                         )}
                         <Header />
                     </div>

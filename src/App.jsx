@@ -38,6 +38,17 @@ export default function App() {
   const guestUsage = useGuestUsage();
   const { user } = useAuth();
 
+  // What the header usage chip renders from: DB-backed subscription for a
+  // logged-in user, or the localStorage guest allowance when signed out.
+  const usageForChip = user
+    ? subscriptionHook
+    : {
+        tier: 'free',
+        remaining: guestUsage.remaining,
+        loading: false,
+        getRemainingText: () => `${guestUsage.remaining}/${guestUsage.limit}`,
+      };
+
   const modes = {
     professional: {
       label: 'Alexandra Ashford',
@@ -470,6 +481,7 @@ Be specific and helpful!`;
           weatherHook={weatherHook}
           profileHook={profileHook}
           subscriptionHook={subscriptionHook}
+          usageForChip={usageForChip}
           showUpgradeModal={showUpgradeModal}
           setShowUpgradeModal={setShowUpgradeModal}
           mode={mode}
