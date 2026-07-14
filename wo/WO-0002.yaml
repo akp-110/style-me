@@ -1,0 +1,68 @@
+id: WO-0002
+title: High-priority security remediation implementation plan
+archetype: Maintainer
+reviewers:
+  - Builder
+  - Sweeper
+status: completed
+objective: >-
+  Produce an implementation-ready, phased plan that fixes the audit's three
+  high-priority issues: bypassable server-side limits, the client-controlled
+  paid AI proxy, and public/orphanable saved outfit photos.
+acceptance_criteria:
+  - Define exact database, API, client, test, rollout, observability, and rollback work.
+  - Preserve server-side enforcement as the sole security boundary; client counters remain UX only.
+  - Include atomic concurrency tests and direct-API abuse tests.
+  - Include explicit human approval gates for database policies, permissions, and production rollout.
+  - Sequence work so each phase is independently verifiable and reversible.
+scope:
+  writable:
+    - wo/WO-0002.yaml
+    - docs/superpowers/plans/2026-07-14-high-priority-security-remediation.md
+  read_only:
+    - api/**
+    - src/**
+    - supabase/migrations/**
+    - package.json
+    - package-lock.json
+    - README.md
+  forbidden:
+    - .env
+    - .env.local
+    - node_modules/**
+    - dist/**
+    - production systems
+    - applying database migrations
+    - changing auth or storage permissions
+    - deployment
+context_brief: >-
+  The audit found that quota checks and usage inserts are non-atomic and fail
+  open, the rating endpoint forwards a caller-owned prompt to a paid provider,
+  and saved outfit images use public storage with a migration/application column
+  mismatch that can leave orphaned uploads. Existing migrations are manually
+  applied through Supabase and API handlers run locally through Express and in
+  production as Vercel functions.
+budget:
+  time_minutes: 45
+  change_limit: planning artifacts only
+verification:
+  commands:
+    - test -s docs/superpowers/plans/2026-07-14-high-priority-security-remediation.md
+    - rg based cross-check of every referenced path and symbol
+    - git diff --check
+  notes: >-
+    This work order authorizes planning only. Implementation, migration
+    application, permission changes, secrets, and deployment require a new
+    Builder work order and the relevant human approval gates.
+completion_evidence:
+  plan_file: docs/superpowers/plans/2026-07-14-high-priority-security-remediation.md
+  delivery_units: 3 independently reviewable pull requests
+  database_migrations_planned: 3
+  human_gates: 4
+  referenced_existing_paths: verified present
+  diff_check: passed
+  product_code_changes: none
+review_notes:
+  - Builder feasibility and Sweeper/Maintainer reviews were performed serially and were not independent.
+  - Database limits are authoritative; client counters and constants are display-only.
+  - Production schema, data, secrets, policies, and provider settings were not accessed.

@@ -1,0 +1,65 @@
+id: WO-0001
+title: Repository security audit
+archetype: Maintainer
+reviewers:
+  - Sweeper
+  - Maintainer
+status: completed
+objective: >-
+  Conduct a read-only security audit of the repository and deliver an
+  evidence-backed report with severity, exploitability, affected locations,
+  and remediation guidance.
+acceptance_criteria:
+  - Inventory application architecture, trust boundaries, sensitive data flows, and dependencies.
+  - Run available deterministic format, lint, typecheck, test, dependency, and secret checks without modifying product code.
+  - Validate suspected findings against reachable code paths and avoid speculative claims.
+  - Report changed files, check results, debt delta, residual risks, and skipped gates.
+scope:
+  writable:
+    - wo/WO-0001.yaml
+  read_only:
+    - "**/*"
+  forbidden:
+    - .env
+    - .env.local
+    - node_modules/**
+    - dist/**
+    - .git/**
+    - production systems
+    - external accounts and messages
+context_brief: >-
+  JavaScript web application with Vite frontend, Node server/API handlers, and
+  Vercel metadata. The working tree contains pre-existing untracked user files
+  that must be preserved. Local environment-file values are out of scope;
+  only tracking status, filenames, and non-sensitive key names may be examined.
+budget:
+  time_minutes: 45
+  change_limit: work-order file only
+verification:
+  commands:
+    - npm run format --if-present
+    - npm run lint --if-present
+    - npm run typecheck --if-present
+    - npm run test --if-present
+    - npm run build --if-present
+    - npm audit --omit=dev
+    - git grep based secret-pattern scan over tracked files
+  notes: >-
+    Verification commands must be non-mutating. Package installation, audit
+    fixes, production access, auth or permission changes, and secret access are
+    prohibited without explicit human approval.
+completion_evidence:
+  format: skipped; no format script is defined
+  lint: failed with 6 pre-existing ESLint errors
+  typecheck: skipped; no typecheck script is defined
+  focused_tests: 23 passed across 2 files
+  broader_tests: 23 passed across 2 files
+  build: passed with a bundle-size warning
+  production_dependency_audit: 7 vulnerabilities; 4 high and 3 moderate
+  full_dependency_audit: 19 vulnerabilities; 2 critical, 9 high, 7 moderate, 1 low
+  secret_scan: no credential-shaped values found in tracked files or git history
+  product_code_changes: none
+residual_risks:
+  - Production Supabase, Vercel, auth-provider, and security-header configuration was not inspected.
+  - Rate-limit behavior was reviewed statically; no live service-role credentials or production data were accessed.
+  - Dedicated secret and SAST scanners were unavailable; deterministic pattern scans were used instead.

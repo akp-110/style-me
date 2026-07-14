@@ -13,7 +13,6 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
 
 // Simple passthrough to handlers in /api
 import weatherHandler from './api/weather.js';
@@ -21,8 +20,9 @@ import rateOutfitHandler from './api/rate-outfit.js';
 import suggestionsHandler from './api/weather-suggestions.js';
 import analyzeOutfitHandler from './api/analyze-outfit.js';
 import searchProductsHandler from './api/search-products.js';
+import { applyCors } from './api/middleware/cors.js';
 
-app.options('/api/*', (req, res) => res.sendStatus(200));
+app.options('/api/*', (req, res) => applyCors(req, res));
 
 app.get('/api/weather', (req, res) => weatherHandler(req, res));
 app.post('/api/rate-outfit', (req, res) => rateOutfitHandler(req, res));

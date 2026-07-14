@@ -518,10 +518,10 @@ export default function UserProfilePage() {
                                         <div
                                             key={outfit.id}
                                             className="relative group overflow-hidden border-2 border-ink shadow-hard-sm bg-stone cursor-pointer"
-                                            onClick={() => setSelectedImage(outfit.image_url)}
+                                            onClick={() => setSelectedImage(outfit.display_url)}
                                         >
                                             <img
-                                                src={outfit.image_url}
+                                                src={outfit.display_url}
                                                 alt="Outfit"
                                                 className="w-full aspect-[3/4] object-cover"
                                                 onError={(e) => {
@@ -540,7 +540,7 @@ export default function UserProfilePage() {
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                if (confirm('Delete this outfit?')) deleteOutfit(outfit.id, outfit.image_url);
+                                                                if (confirm('Delete this outfit?')) deleteOutfit(outfit.id, outfit.image_path);
                                                             }}
                                                             className="p-2 bg-white border-2 border-ink btn-press"
                                                             title="Delete outfit"

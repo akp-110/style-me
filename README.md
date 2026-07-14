@@ -181,6 +181,11 @@ npm run lint      # ESLint
 | `OPENWEATHER_API_KEY` | Weather + geocoding (server-side) | Yes |
 | `VITE_SUPABASE_URL` | Supabase project URL (client-side) | Yes |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anon key (client-side) | Yes |
+| `SUPABASE_URL` | Supabase project URL for server-side quota RPCs | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only key for quota reservations | Yes |
+| `GUEST_IP_SALT` | Random 32+ character HMAC key for guest identities | Yes |
+| `APP_ORIGINS` | Comma-separated exact browser origins allowed by the API | Yes |
+| `DISABLE_AI_ENDPOINTS` | Emergency `1` switch to stop paid AI calls | No |
 | `RAPIDAPI_KEY` | Product search; mock data used if unset (server-side) | No |
 
 > Client-exposed variables **must** be prefixed with `VITE_`. Everything else stays server-side only.
@@ -217,8 +222,11 @@ The `api/` handlers are already serverless-compatible.
 
 - API keys (Anthropic, OpenWeather, RapidAPI) are used server-side only in `api/` handlers.
 - Supabase access is protected by Row Level Security keyed on the authenticated user.
+- Rating and analysis limits are atomically reserved by server-side Supabase RPCs before paid provider calls. Client counters are display-only.
+- Existing `style_pro` subscriptions remain unlimited; security migrations never update subscription tiers.
+- Rating prompts, provider models, and token budgets are server-owned. API inputs and browser origins are validated server-side.
+- Saved outfit photos use private object paths and short-lived signed URLs after migrations 010 and 011 are applied through the approved compatibility rollout.
 - `.env` is gitignored.
-- ⚠️ Subscription/usage limits are currently enforced client-side only — the rating endpoints themselves are unauthenticated. Add server-side checks before relying on tiers for a public deployment.
 
 ---
 

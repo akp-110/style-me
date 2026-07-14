@@ -59,7 +59,7 @@ export const PhotoUpload = ({
                 <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <p className="text-xs leading-relaxed">
                     <span className="font-bold text-ink/80">Privacy:</span> Photos are sent to Anthropic's Claude API for
-                    analysis and never stored on our servers. See{' '}
+                    analysis. If you choose Save, the photo is stored privately in Supabase until you delete it. See{' '}
                     <a
                         href="https://www.anthropic.com/legal/commercial-terms"
                         target="_blank"

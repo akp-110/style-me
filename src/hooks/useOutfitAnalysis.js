@@ -33,6 +33,14 @@ export const useOutfitAnalysis = () => {
                 throw new Error(data.error || 'Analysis limit reached — try again later.');
             }
 
+            if (response.status === 401) {
+                throw new Error('Your session has expired. Please sign in again.');
+            }
+
+            if (response.status === 503) {
+                throw new Error('Analysis is temporarily unavailable. Please try again shortly.');
+            }
+
             if (!response.ok || !data.success) {
                 throw new Error(data.error || 'Analysis failed');
             }

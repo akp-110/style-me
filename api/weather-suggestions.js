@@ -1,15 +1,10 @@
 /* eslint-env node */
 /* global process */
 
-import { setCorsHeaders } from './middleware/cors.js';
+import { applyCors } from './middleware/cors.js';
 
 export default async function handler(req, res) {
-  setCorsHeaders(res);
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+  if (!applyCors(req, res)) return;
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -17,7 +12,7 @@ export default async function handler(req, res) {
 
   const { q } = req.query;
 
-  if (!q || q.trim().length === 0) {
+  if (typeof q !== 'string' || q.trim().length === 0 || q.length > 160) {
     return res.status(400).json({ error: 'Query parameter "q" is required' });
   }
 

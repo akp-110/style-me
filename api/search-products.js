@@ -1,7 +1,7 @@
 /* eslint-env node */
 /* global process */
 
-import { setCorsHeaders } from './middleware/cors.js';
+import { applyCors } from './middleware/cors.js';
 
 /**
  * Product Search API
@@ -9,12 +9,7 @@ import { setCorsHeaders } from './middleware/cors.js';
  * Free tier: 100 requests/month
  */
 export default async function handler(req, res) {
-    setCorsHeaders(res);
-
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
+    if (!applyCors(req, res)) return;
 
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -23,16 +18,15 @@ export default async function handler(req, res) {
     try {
         const {
             query,
-            category = 'fashion',
-            minPrice = 0,
-            maxPrice = 500,
-            stores = ['H&M', 'ASOS', 'Amazon'],
             country = 'US', // Default to US
             limit = 8
         } = req.body;
 
-        if (!query) {
+        if (typeof query !== 'string' || !query.trim() || query.length > 160) {
             return res.status(400).json({ error: 'Missing search query' });
+        }
+        if (!/^[A-Za-z]{2}$/.test(country) || !Number.isInteger(limit) || limit < 1 || limit > 20) {
+            return res.status(400).json({ error: 'Invalid search options' });
         }
 
         // Check if RapidAPI key is configured

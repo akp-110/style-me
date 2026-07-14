@@ -1,26 +1,32 @@
 /* eslint-env node */
+/* global process */
 
-/**
- * Shared CORS middleware for API endpoints
- * Enables cross-origin requests for all endpoints
- */
-export const setCorsHeaders = (res) => {
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*');
+const LOCAL_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
+export function allowedOrigins(env = process.env) {
+    const configured = String(env.APP_ORIGINS || '')
+        .split(',')
+        .map(value => value.trim())
+        .filter(Boolean);
+    if (configured.length) return new Set(configured);
+    return env.NODE_ENV === 'production' ? new Set() : new Set(LOCAL_ORIGINS);
+}
+export function applyCors(req, res, env = process.env) {
+    const origin = req.headers?.origin;
+    const allowed = !origin || allowedOrigins(env).has(origin);
+
+    res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-};
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (origin && allowed) res.setHeader('Access-Control-Allow-Origin', origin);
 
-/**
- * Handle OPTIONS preflight requests
- */
-export const handleCors = (req, res, next) => {
-    setCorsHeaders(res);
-
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+    if (!allowed) {
+        res.status(403).json({ error: 'Origin is not allowed', code: 'origin_not_allowed' });
+        return false;
     }
-
-    next();
-};
+    if (req.method === 'OPTIONS') {
+        res.status(204).end();
+        return false;
+    }
+    return true;
+}

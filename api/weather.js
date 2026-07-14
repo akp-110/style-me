@@ -2,16 +2,10 @@
 /* eslint-env node */
 /* global process */
 
-import { setCorsHeaders } from './middleware/cors.js';
+import { applyCors } from './middleware/cors.js';
 
 export default async function handler(req, res) {
-  // Enable CORS
-  setCorsHeaders(res);
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+  if (!applyCors(req, res)) return;
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });

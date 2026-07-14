@@ -6,6 +6,11 @@
   "scripts": {
     "dev": "vite",
     "dev:all": "concurrently \"npm run start\" \"npm run dev\"",
+
+    "dev:test": "vite --mode test",
+    "start:test": "node --env-file=.env.test.local server.js",
+    "dev:all:test": "concurrently \"npm run start:test\" \"npm run dev:test\"",
+
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",

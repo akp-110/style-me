@@ -1,55 +1,46 @@
 /* eslint-env node */
 /* global process */
 
-import { setCorsHeaders } from './middleware/cors.js';
+import { applyCors } from './middleware/cors.js';
 import { MODE_TOKEN_LIMITS, DEFAULT_TOKEN_LIMIT } from './config/constants.js';
-import { enforceLimits, recordUsage, limitResponseBody } from './middleware/enforceLimits.js';
+import { reserveUsage, releaseUsage, gateResponseBody } from './middleware/enforceLimits.js';
+import { InputError, validateRatingRequest } from './lib/requestValidation.js';
+import { buildRatingPrompt } from './lib/ratingPrompt.js';
 
-// api/rate-outfit.js
+const PROVIDER_TIMEOUT_MS = 30_000;
+
 export default async function handler(req, res) {
-  // Enable CORS
-  setCorsHeaders(res);
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
+  if (!applyCors(req, res)) return;
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed', code: 'method_not_allowed' });
   }
+
+  let input;
+  try {
+    input = validateRatingRequest(req.body);
+  } catch (error) {
+    if (error instanceof InputError) {
+      return res.status(error.status).json({ error: error.message, code: error.code });
+    }
+    return res.status(400).json({ error: 'Invalid request', code: 'invalid_request' });
+  }
+
+  if (process.env.DISABLE_AI_ENDPOINTS === '1' || !process.env.ANTHROPIC_API_KEY) {
+    return res.status(503).json({ error: 'Rating service is temporarily unavailable', code: 'provider_unavailable' });
+  }
+
+  const gate = await reserveUsage(req, 'rating');
+  if (!gate.allowed) return res.status(gate.status).json(gateResponseBody(gate));
+
+  const prompt = buildRatingPrompt(input.mode, input.context);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+  let providerAccepted = false;
 
   try {
-    const { image, prompt, mode = 'balanced', mediaType = 'image/jpeg' } = req.body;
-
-    console.log('Received mediaType:', mediaType);
-
-    if (!image || !prompt) {
-      return res.status(400).json({ error: 'Missing image or prompt' });
-    }
-
-    // Server-side rate limit (identity: Supabase JWT or hashed guest IP)
-    const gate = await enforceLimits(req, 'rating');
-    if (!gate.allowed) {
-      return res.status(429).json(limitResponseBody('rating', gate));
-    }
-
-    // Validate and normalize media type
-    const validMediaTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
-    let normalizedMediaType = mediaType;
-
-    if (!validMediaTypes.includes(mediaType)) {
-      console.warn(`Invalid media type ${mediaType}, defaulting to image/jpeg`);
-      normalizedMediaType = 'image/jpeg';
-    }
-
-    console.log('Using mediaType:', normalizedMediaType);
-
-    // Determine max_tokens based on mode for cost optimization
-    const maxTokens = MODE_TOKEN_LIMITS[mode] || DEFAULT_TOKEN_LIMIT;
-
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
@@ -57,40 +48,33 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5',
-        max_tokens: maxTokens,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: normalizedMediaType,
-                  data: image
-                }
-              },
-              {
-                type: 'text',
-                text: prompt
-              }
-            ]
-          }
-        ]
+        max_tokens: MODE_TOKEN_LIMITS[input.mode] || DEFAULT_TOKEN_LIMIT,
+        system: prompt.system,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: input.mediaType, data: input.image } },
+            { type: 'text', text: prompt.user }
+          ]
+        }]
       })
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.error?.message || 'API request failed');
+      await releaseUsage(gate.reservation);
+      return res.status(502).json({ error: 'Rating provider request failed', code: 'provider_error' });
     }
 
-    await recordUsage(gate.identity, 'rating');
-
-    res.status(200).json(data);
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
+    providerAccepted = true;
+    const data = await response.json();
+    if (!data.content || !Array.isArray(data.content)) {
+      return res.status(502).json({ error: 'Rating provider returned an invalid response', code: 'provider_error' });
+    }
+    return res.status(200).json(data);
+  } catch {
+    if (!providerAccepted) await releaseUsage(gate.reservation);
+    return res.status(502).json({ error: 'Rating provider is temporarily unavailable', code: 'provider_error' });
+  } finally {
+    clearTimeout(timeout);
   }
 }

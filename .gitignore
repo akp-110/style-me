@@ -23,9 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
-.env.local
-.env*.local
+.env*
+!.env.example
 
 
 dist/
@@ -39,3 +38,6 @@ build/
 # Claude Code session tooling (worktrees, local settings)
 .claude/
 .env*
+
+# Local browser automation artifacts
+.playwright-mcp/

@@ -1,0 +1,102 @@
+id: WO-0003
+title: Implement high-priority security remediation
+archetype: Builder
+reviewers:
+  - Sweeper
+  - Maintainer
+status: completed
+objective: >-
+  Implement and locally verify the approved high-priority security plan:
+  atomic fail-closed server quotas, a constrained server-owned AI request
+  contract, and private recoverable saved-outfit storage.
+acceptance_criteria:
+  - Paid AI handlers require a successful atomic server-side reservation before provider access.
+  - Existing style_pro subscriptions remain unchanged and unlimited.
+  - Client-provided prompts are rejected; server validates bounded structured input and builds prompts.
+  - CORS uses an explicit allowlist and never acts as the access-control boundary.
+  - New outfit saves persist private object paths and clean up uploads after failed inserts.
+  - Migrations support compatibility-first private storage cutover with owner-only policies.
+  - Focused tests, full tests, lint, build, dependency audit, and secret scan have recorded evidence.
+scope:
+  writable:
+    - api/**
+    - src/**
+    - supabase/migrations/009_*.sql
+    - supabase/migrations/010_*.sql
+    - supabase/migrations/011_*.sql
+    - supabase/tests/**
+    - scripts/**
+    - .env.example
+    - README.md
+    - package.json
+    - package-lock.json
+    - docs/superpowers/plans/2026-07-14-high-priority-security-remediation.md
+    - wo/WO-0003.yaml
+  read_only:
+    - supabase/migrations/001_*.sql
+    - supabase/migrations/002_*.sql
+    - supabase/migrations/003_*.sql
+    - supabase/migrations/004_*.sql
+    - supabase/migrations/005_*.sql
+    - supabase/migrations/006_*.sql
+    - supabase/migrations/007_*.sql
+    - supabase/migrations/008_*.sql
+  forbidden:
+    - .env
+    - .env.local
+    - production systems
+    - applying database migrations
+    - changing live auth or storage permissions
+    - deleting production data or storage objects
+    - deployment
+    - external messages
+context_brief: >-
+  Work follows docs/superpowers/plans/2026-07-14-high-priority-security-remediation.md.
+  The working tree contains pre-existing untracked user files that must be
+  preserved. The owner has an existing style_pro account for unlimited testing;
+  no implementation or migration may mutate subscription tiers.
+budget:
+  time_minutes: 150
+  change_limit: high-priority remediation files only
+verification:
+  commands:
+    - npm run format --if-present
+    - npm run lint
+    - npm run typecheck --if-present
+    - focused vitest suites for quota, handlers, validation, CORS, and outfits
+    - npm test
+    - npm run build
+    - npm audit --omit=dev
+    - git grep based secret-pattern scan
+    - git diff --check
+  notes: >-
+    Database migrations and policy changes may be authored and reviewed but must
+    not be applied. Production configuration, provider settings, and deployment
+    remain human-gated.
+completion_evidence:
+  format: skipped; no format script is defined
+  lint: passed
+  typecheck: skipped; no typecheck script is defined
+  focused_tests: 34 passed across 7 files
+  broader_tests: 45 passed across 9 files
+  build: passed with a pre-existing bundle-size warning
+  production_dependency_audit: failed with 7 known vulnerabilities; 4 high and 3 moderate
+  secret_scan: no credential-shaped values found
+  diff_check: passed
+  production_changes: none
+  migrations_applied: none
+debt_delta:
+  removed:
+    - fail-open and non-atomic provider quota enforcement
+    - client-controlled Anthropic rating prompts and token-budget influence
+    - wildcard credentialed CORS
+    - public-URL writes for new saved outfits after the planned migrations
+    - duplicate JavaScript quota-decision logic
+  added_or_remaining:
+    - three unapplied, human-gated Supabase migrations
+    - production APP_ORIGINS, GUEST_IP_SALT, spending limits, and alerts require configuration
+    - seven known production dependency advisories remain a separate medium-priority work order
+    - live database concurrency and owner/non-owner storage policy tests require a dedicated test Supabase project
+review_notes:
+  - Sweeper and Maintainer reviews were performed serially and were not independent.
+  - Existing style_pro subscription rows are never updated and remain unlimited.

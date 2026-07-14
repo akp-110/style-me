@@ -1,156 +1,128 @@
 /* eslint-env node */
 /* global process */
 import { createClient } from '@supabase/supabase-js';
-import {
-    monthStart, nextMonthStart,
-    decide, hashIp, clientIp
-} from '../lib/limitPolicy.js';
-import { RATE_LIMITS } from '../config/constants.js';
+import { hashIp, clientIp } from '../lib/limitPolicy.js';
 
-const IP_SALT = process.env.GUEST_IP_SALT || 'style-me-guest-v1';
-
+const ACTIONS = new Set(['rating', 'analysis']);
 let adminClient = null;
-let warnedMissingEnv = false;
+
+function unavailable(message = 'Usage limits are temporarily unavailable') {
+    return { allowed: false, status: 503, code: 'rate_limit_unavailable', error: message };
+}
 
 function getAdminClient() {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key) {
-        if (!warnedMissingEnv) {
-            console.warn(
-                '[rate-limit] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set — ' +
-                'limits are NOT enforced. Set both to enable enforcement.'
-            );
-            warnedMissingEnv = true;
-        }
-        return null;
-    }
+    const salt = process.env.GUEST_IP_SALT;
+
+    if (!url || !key || !salt || salt.length < 32) return null;
     if (!adminClient) {
         adminClient = createClient(url, key, {
             auth: { persistSession: false, autoRefreshToken: false }
         });
     }
-    return adminClient;
+    return { supabase: adminClient, ipSalt: salt };
 }
 
-// Fail-open result used whenever the check itself cannot run.
-const OPEN = { allowed: true, identity: { kind: 'unknown' } };
+export function createLimitService({ supabase, ipSalt }) {
+    async function resolveIdentity(req) {
+        const authHeader = req.headers?.authorization || '';
+        if (authHeader) {
+            if (!authHeader.startsWith('Bearer ') || authHeader.length <= 7) {
+                return { error: { allowed: false, status: 401, code: 'invalid_token', error: 'Invalid access token' } };
+            }
 
-/**
- * Resolve the caller's identity and check their usage against the limits.
- * Never throws. Returns:
- *   { allowed: true,  identity }                            — proceed
- *   { allowed: false, identity, limit, resetAt }            — respond 429
- * identity is { kind: 'user', id, tier } | { kind: 'guest', ipHash } | { kind: 'unknown' }
- */
-export async function enforceLimits(req, actionType) {
-    const supabase = getAdminClient();
-    if (!supabase) return OPEN;
-
-    try {
-        const identity = await resolveIdentity(req, supabase);
-        const now = new Date();
-
-        if (identity.kind === 'user') {
-            if (identity.tier === 'style_pro') return { allowed: true, identity };
-
-            const { count, error } = await supabase
-                .from('usage_logs')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', identity.id)
-                .eq('action_type', actionType)
-                .gte('created_at', monthStart(now).toISOString());
-            // HEAD responses carry no body, so supabase-js can swallow errors
-            // (e.g. missing table) as { error: null, count: null }. Treat a
-            // null count as a failed check so fail-open stays loud.
-            if (error || count === null) throw error || new Error('usage_logs count returned null');
-
-            const verdict = decide(identity.tier, count);
-            if (verdict.allowed) return { allowed: true, identity };
-            return {
-                allowed: false, identity,
-                limit: verdict.limit,
-                resetAt: nextMonthStart(now).toISOString()
-            };
+            const token = authHeader.slice(7);
+            const { data, error } = await supabase.auth.getUser(token);
+            if (error || !data?.user) {
+                return { error: { allowed: false, status: 401, code: 'invalid_token', error: 'Invalid or expired access token' } };
+            }
+            return { identity: { kind: 'user', id: data.user.id } };
         }
 
-        // Guest path — same monthly window as users, keyed by hashed IP.
-        const { count, error } = await supabase
-            .from('guest_usage')
-            .select('*', { count: 'exact', head: true })
-            .eq('ip_hash', identity.ipHash)
-            .eq('action_type', actionType)
-            .gte('created_at', monthStart(now).toISOString());
-        // Same null-count guard as the user path (HEAD swallows errors).
-        if (error || count === null) throw error || new Error('guest_usage count returned null');
-
-        const verdict = decide('guest', count);
-        if (verdict.allowed) return { allowed: true, identity };
         return {
-            allowed: false, identity,
-            limit: verdict.limit,
-            resetAt: nextMonthStart(now).toISOString()
+            identity: {
+                kind: 'guest',
+                ipHash: hashIp(clientIp(req), ipSalt)
+            }
         };
-    } catch (err) {
-        console.warn('[rate-limit] check failed — allowing request (fail-open):', err.message);
-        return OPEN;
     }
-}
 
-async function resolveIdentity(req, supabase) {
-    const authHeader = req.headers?.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    async function reserveUsage(req, actionType) {
+        if (!ACTIONS.has(actionType)) return unavailable();
 
-    if (token) {
-        const { data, error } = await supabase.auth.getUser(token);
-        if (!error && data?.user) {
-            const { data: sub } = await supabase
-                .from('user_subscriptions')
-                .select('tier')
-                .eq('user_id', data.user.id)
-                .maybeSingle();
-            return { kind: 'user', id: data.user.id, tier: sub?.tier || 'free' };
+        try {
+            const resolved = await resolveIdentity(req);
+            if (resolved.error) return resolved.error;
+            const identity = resolved.identity;
+            const args = {
+                p_user_id: identity.kind === 'user' ? identity.id : null,
+                p_ip_hash: identity.kind === 'guest' ? identity.ipHash : null,
+                p_action_type: actionType
+            };
+            const { data, error } = await supabase.rpc('reserve_usage', args);
+            if (error) return unavailable();
+
+            const row = Array.isArray(data) ? data[0] : data;
+            if (!row || typeof row.allowed !== 'boolean') return unavailable();
+            if (!row.allowed) {
+                return {
+                    allowed: false,
+                    status: 429,
+                    code: 'rate_limit_exceeded',
+                    error: `You've reached your ${actionType} limit.`,
+                    scope: actionType,
+                    limit: row.limit_count,
+                    resetAt: row.reset_at
+                };
+            }
+            if (!row.reservation_id) return unavailable();
+
+            return {
+                allowed: true,
+                identity,
+                tier: row.tier_key,
+                reservation: { id: row.reservation_id, identityKind: identity.kind }
+            };
+        } catch {
+            return unavailable();
         }
-        // Invalid/expired token falls through to guest treatment.
     }
 
-    return { kind: 'guest', ipHash: hashIp(clientIp(req), IP_SALT) };
-}
-
-/**
- * Record one usage row AFTER a successful Claude call. The server is the
- * single writer of usage records. Never throws.
- */
-export async function recordUsage(identity, actionType) {
-    const supabase = getAdminClient();
-    if (!supabase || !identity || identity.kind === 'unknown') return;
-
-    try {
-        if (identity.kind === 'user') {
-            const { error } = await supabase
-                .from('usage_logs')
-                .insert({ user_id: identity.id, action_type: actionType });
-            if (error) throw error;
-        } else {
-            const { error } = await supabase
-                .from('guest_usage')
-                .insert({ ip_hash: identity.ipHash, action_type: actionType });
-            if (error) throw error;
+    async function releaseUsage(reservation) {
+        if (!reservation?.id || !reservation?.identityKind) return false;
+        try {
+            const { data, error } = await supabase.rpc('release_usage', {
+                p_reservation_id: reservation.id,
+                p_identity_kind: reservation.identityKind
+            });
+            return !error && data === true;
+        } catch {
+            return false;
         }
-    } catch (err) {
-        console.warn('[rate-limit] failed to record usage:', err.message);
     }
+
+    return { reserveUsage, releaseUsage };
 }
 
-/** Standard 429 body per the spec. */
-export function limitResponseBody(scope, gate) {
+export async function reserveUsage(req, actionType) {
+    const config = getAdminClient();
+    if (!config) return unavailable();
+    return createLimitService(config).reserveUsage(req, actionType);
+}
+
+export async function releaseUsage(reservation) {
+    const config = getAdminClient();
+    if (!config) return false;
+    return createLimitService(config).releaseUsage(reservation);
+}
+
+export function gateResponseBody(gate) {
     return {
-        error: `You've reached your ${scope} limit. It resets ${new Date(gate.resetAt).toLocaleDateString('en-GB')}.`,
-        code: 'rate_limit_exceeded',
-        scope,
-        limit: gate.limit,
-        resetAt: gate.resetAt
+        error: gate.error,
+        code: gate.code,
+        ...(gate.scope ? { scope: gate.scope } : {}),
+        ...(gate.limit !== undefined ? { limit: gate.limit } : {}),
+        ...(gate.resetAt ? { resetAt: gate.resetAt } : {})
     };
 }
-
-export { RATE_LIMITS };
