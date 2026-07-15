@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { X, Check, Cloud, Crown } from 'lucide-react';
 
 const PLANS = [
@@ -38,7 +38,7 @@ const PLANS = [
             { name: 'Calendar integration', included: true },
             { name: 'Color analysis', included: false },
         ],
-        buttonText: 'Upgrade to Style+',
+        buttonText: 'Unavailable in demo',
         buttonStyle: 'bg-acid shadow-hard',
         highlight: true,
         icon: Cloud
@@ -59,35 +59,24 @@ const PLANS = [
             { name: 'Calendar integration', included: true },
             { name: 'Advanced color analysis', included: true },
         ],
-        buttonText: 'Go Pro',
+        buttonText: 'Unavailable in demo',
         buttonStyle: 'bg-ink text-acid shadow-hard',
         highlight: false,
         icon: Crown
     }
 ];
 
-export function UpgradeModal({ isOpen, onClose, currentTier = 'free', onSelectPlan }) {
-    const [loading, setLoading] = useState(null);
-
+export function UpgradeModal({ isOpen, onClose, currentTier = 'free' }) {
     if (!isOpen) return null;
-
-    const handleSelectPlan = async (planId) => {
-        if (planId === currentTier || planId === 'free') return;
-
-        setLoading(planId);
-        try {
-            await onSelectPlan?.(planId);
-        } finally {
-            setLoading(null);
-        }
-    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/60 animate-fade-in">
             <div className="relative bg-paper max-w-4xl w-full max-h-[90vh] overflow-y-auto border-[3px] border-ink shadow-hard-lg">
                 {/* Close button */}
                 <button
+                    type="button"
                     onClick={onClose}
+                    aria-label="Close upgrade options"
                     className="absolute top-3 right-3 chip-hard btn-press shadow-hard-sm z-10"
                 >
                     <X className="w-4 h-4" />
@@ -99,7 +88,7 @@ export function UpgradeModal({ isOpen, onClose, currentTier = 'free', onSelectPl
                         Upgrade Your Style Game
                     </h2>
                     <p className="text-ink/60 text-sm">
-                        Get more ratings and unlock premium features
+                        Paid plans are shown for demonstration purposes only and are not available yet.
                     </p>
                 </div>
 
@@ -107,6 +96,7 @@ export function UpgradeModal({ isOpen, onClose, currentTier = 'free', onSelectPl
                 <div className="grid md:grid-cols-3 gap-4 p-6">
                     {PLANS.map((plan) => {
                         const isCurrentPlan = plan.id === currentTier;
+                        const isPaidPlan = plan.id !== 'free';
                         const Icon = plan.icon;
 
                         return (
@@ -160,27 +150,25 @@ export function UpgradeModal({ isOpen, onClose, currentTier = 'free', onSelectPl
 
                                 {/* CTA button */}
                                 <button
-                                    onClick={() => handleSelectPlan(plan.id)}
-                                    disabled={isCurrentPlan || loading === plan.id}
+                                    type="button"
+                                    disabled
+                                    aria-describedby={isPaidPlan ? `${plan.id}-demo-notice` : undefined}
                                     className={`w-full py-3 border-[3px] border-ink font-black uppercase tracking-wide text-sm btn-press ${isCurrentPlan
                                             ? 'bg-stone text-ink/40 cursor-default'
-                                            : plan.buttonStyle
+                                            : 'bg-stone text-ink/50 cursor-not-allowed'
                                         } disabled:opacity-50`}
                                 >
-                                    {loading === plan.id ? (
-                                        <span className="flex items-center justify-center gap-2">
-                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                            </svg>
-                                            Processing...
-                                        </span>
-                                    ) : isCurrentPlan ? (
+                                    {isCurrentPlan ? (
                                         'Current Plan'
                                     ) : (
                                         plan.buttonText
                                     )}
                                 </button>
+                                {isPaidPlan && (
+                                    <p id={`${plan.id}-demo-notice`} className="mt-2 text-center text-xs text-ink/50">
+                                        Demonstration only — payments and premium features are not live.
+                                    </p>
+                                )}
                             </div>
                         );
                     })}
@@ -189,7 +177,7 @@ export function UpgradeModal({ isOpen, onClose, currentTier = 'free', onSelectPl
                 {/* Footer */}
                 <div className="text-center pb-8 px-6">
                     <p className="text-ink/50 text-xs">
-                        Cancel anytime. Prices in GBP. Secure payment via Stripe.
+                        Demonstration only. Prices are illustrative; payments are not available.
                     </p>
                 </div>
             </div>

@@ -306,11 +306,6 @@ export default function App() {
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         currentTier={subscriptionHook.tier}
-        onSelectPlan={(tier) => {
-          // TODO: Stripe checkout integration
-          console.log('Selected tier:', tier);
-          setShowUpgradeModal(false);
-        }}
       />
       <Routes>
         <Route path="/" element={<HomePage
